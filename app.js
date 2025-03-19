@@ -1,22 +1,29 @@
 // Firebase configuration object
 const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-    projectId: "YOUR_PROJECT_ID",
-    storageBucket: "YOUR_PROJECT_ID.appspot.com",
-    messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-    appId: "YOUR_APP_ID"
-};
+    apiKey: "AIzaSyAI3ubU7Cy0kZdqpTHlD7OM6dLdDJGjymk",
+    authDomain: "music-form-4cfd6.firebaseapp.com",
+    projectId: "music-form-4cfd6",
+    storageBucket: "music-form-4cfd6.firebasestorage.app",
+    messagingSenderId: "331873655169",
+    appId: "1:331873655169:web:d3e4c7ebb042daa1573080"
+  };
+
+import { initializeApp } from 'firebase/app';
+import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
+import { getFunctions, httpsCallable } from 'firebase/functions';
+import { firebaseConfig } from './config';
 
 // Initialize Firebase
-firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const functions = getFunctions(app);
 
+// Rest of your app.js code modified to use modern Firebase SDK
 function login() {
     const email = document.getElementById('email').value;
     const password = document.getElementById('password').value;
 
-    auth.signInWithEmailAndPassword(email, password)
+    signInWithEmailAndPassword(auth, email, password)
         .then((userCredential) => {
             document.getElementById('login-message').innerText = "Login successful!";
             document.getElementById('login-section').style.display = "none";
