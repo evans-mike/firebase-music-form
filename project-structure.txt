@@ -1,0 +1,89 @@
+firebase-music-form/                   # Root project directory
+│
+├── .git/                             # Git repository folder
+├── .gitignore                        # Git ignore file
+├── firebase.json                     # Firebase configuration
+├── .firebaserc                       # Firebase project aliases
+├── README.md                         # Project documentation
+│
+├── functions/                        # Firebase Cloud Functions directory
+│   ├── node_modules/                 # Functions dependencies
+│   ├── .env                         # Functions environment variables
+│   ├── .eslintrc.js                 # ESLint configuration
+│   ├── package.json                 # Functions package file
+│   ├── package-lock.json            # Functions dependency lock file
+│   └── index.js                     # Main functions code
+│
+└── my-firebase-app/                  # Frontend Vite application
+    ├── node_modules/                 # Frontend dependencies
+    ├── public/                      # Static assets
+    ├── src/                         # Source code
+    │   ├── assets/                  # Frontend assets
+    │   ├── components/              # React/Vue components
+    │   ├── App.js                   # Main application component
+    │   └── main.js                  # Application entry point
+    ├── .env                         # Frontend environment variables
+    ├── index.html                   # HTML entry point
+    ├── package.json                 # Frontend package file
+    ├── package-lock.json            # Frontend dependency lock file
+    └── vite.config.js              # Vite configuration
+
+Key files and their contents:
+
+1. functions/.env:
+BIGQUERY_DATASET_ID=your_dataset_id
+
+2. my-firebase-app/.env:
+VITE_FIREBASE_API_KEY=your_api_key
+VITE_FIREBASE_AUTH_DOMAIN=your_project_id.firebaseapp.com
+VITE_FIREBASE_PROJECT_ID=your_project_id
+VITE_FIREBASE_STORAGE_BUCKET=your_project_id.appspot.com
+VITE_FIREBASE_MESSAGING_SENDER_ID=your_messaging_sender_id
+VITE_FIREBASE_APP_ID=your_app_id
+VITE_BIGQUERY_DATASET_ID=your_project_id.song_tracker_data
+
+3. firebase.json:
+{
+  "functions": {
+    "source": "functions"
+  },
+  "hosting": {
+    "public": "my-firebase-app/dist",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ]
+  },
+  "emulators": {
+    "functions": {
+      "port": 5001
+    },
+    "hosting": {
+      "port": 5000
+    },
+    "ui": {
+      "enabled": true,
+      "port": 4000
+    }
+  }
+}
+
+Required Commands to Set Up:
+1. git clone https://github.com/evans-mike/firebase-music-form.git
+2. cd firebase-music-form
+3. firebase login
+4. cd functions && npm install
+5. cd ../my-firebase-app && npm install
+6. Create .env files in both directories
+7. firebase emulators:start (root directory)
+8. npm run dev (in my-firebase-app directory, separate terminal)
+
+Last Updated: 2025-03-20 15:47:00
+Created By: evans-mike
