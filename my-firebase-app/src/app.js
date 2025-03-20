@@ -10,25 +10,37 @@ const functions = getFunctions(app);
 
 // Connect to emulators in development
 if (window.location.hostname === 'localhost') {
-    connectAuthEmulator(auth, 'http://localhost:9099', { disableWarnings: true });
+    // Connect to auth emulator WITHOUT the "disableWarnings" option
+    connectAuthEmulator(auth, 'http://localhost:9099');
     connectFunctionsEmulator(functions, 'localhost', 5001);
     console.log('Connected to Firebase emulators');
 
-    // Create a test user
-    const testEmail = 'test@example.com';
-    const testPassword = 'password123';
-
-    createUserWithEmailAndPassword(auth, testEmail, testPassword)
-        .then((userCredential) => {
+    // Create test user with better error handling
+    const createTestUser = async () => {
+        const testEmail = 'test@example.com';
+        const testPassword = 'password123';
+        
+        try {
+            const userCredential = await createUserWithEmailAndPassword(auth, testEmail, testPassword);
             console.log('Test user created:', userCredential.user.email);
-        })
-        .catch((error) => {
-            // If error code is 'auth/email-already-in-use', that's fine - user already exists
-            if (error.code !== 'auth/email-already-in-use') {
+        } catch (error) {
+            if (error.code === 'auth/email-already-in-use') {
+                console.log('Test user already exists, trying to sign in...');
+                try {
+                    const userCredential = await signInWithEmailAndPassword(auth, testEmail, testPassword);
+                    console.log('Signed in as test user:', userCredential.user.email);
+                } catch (signInError) {
+                    console.error('Error signing in test user:', signInError);
+                }
+            } else {
                 console.error('Error creating test user:', error);
             }
-        });
+        }
+    };
+
+    createTestUser();
 }
+
 
 // Auth state observer
 onAuthStateChanged(auth, (user) => {
