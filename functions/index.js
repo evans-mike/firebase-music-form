@@ -11,7 +11,7 @@ const datasetId = process.env.BIGQUERY_DATASET_ID;
 exports.createNewSong = functions.https.onCall(async (data, context) => {
     const title = data.title;
     const tableId = 'app_songs';
-    const row = { _id: uuidv4(), title: title };
+    const row = { id: uuidv4(), title: title };
 
     try {
         await bigquery.dataset(datasetId).table(tableId).insert(row);
@@ -26,7 +26,7 @@ exports.submitOccurrences = functions.https.onCall(async (data, context) => {
     const tableId = 'app_song_occurrences';
 
     const formattedRows = rows.map(row => ({
-        _id: uuidv4(),
+        id: uuidv4(),
         ...row
     }));
 
