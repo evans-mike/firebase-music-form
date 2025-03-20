@@ -1,6 +1,6 @@
 import { initializeApp } from 'firebase/app';
-import { getAuth, signInWithEmailAndPassword, connectAuthEmulator, createUserWithEmailAndPassword } from 'firebase/auth';
-import { getFunctions } from 'firebase/functions';
+import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, connectAuthEmulator, createUserWithEmailAndPassword, signOut } from 'firebase/auth';
+import { getFunctions, httpsCallable, connectFunctionsEmulator } from 'firebase/functions';
 import { firebaseConfig } from './config';
 
 // Initialize Firebase
@@ -11,6 +11,7 @@ const functions = getFunctions(app, 'us-central1');
 // Connect to emulators in development
 if (window.location.hostname === 'localhost') {
     connectAuthEmulator(auth, 'http://127.0.0.1:9099');
+    connectFunctionsEmulator(functions, '127.0.0.1', 5001);
     console.log('Connected to Firebase emulators');
 
     // Create test user with better error handling
