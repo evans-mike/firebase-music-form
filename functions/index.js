@@ -10,7 +10,7 @@ const datasetId = process.env.BIGQUERY_DATASET_ID;
 
 exports.createNewSong = functions.https.onCall(async (data, context) => {
     const title = data.title;
-    const tableId = 'songs';
+    const tableId = 'app_songs';
     const row = { _id: uuidv4(), title: title };
 
     try {
@@ -23,8 +23,7 @@ exports.createNewSong = functions.https.onCall(async (data, context) => {
 
 exports.submitOccurrences = functions.https.onCall(async (data, context) => {
     const rows = data.rows;
-    const datasetId = 'your_dataset_id';
-    const tableId = 'song_occurrences';
+    const tableId = 'app_song_occurrences';
 
     const formattedRows = rows.map(row => ({
         _id: uuidv4(),
