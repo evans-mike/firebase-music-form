@@ -1,6 +1,6 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth, signInWithEmailAndPassword, connectAuthEmulator, createUserWithEmailAndPassword } from 'firebase/auth';
-import { getFunctions, httpsCallable } from 'firebase/functions';
+import { getFunctions } from 'firebase/functions';
 import { firebaseConfig } from './config';
 
 // Initialize Firebase
@@ -40,13 +40,16 @@ if (window.location.hostname === 'localhost') {
     createTestUser();
 }
 
-// Test the connection using fetch instead of callable
+// Test the connection using fetch with proper CORS headers
 const testEmulatorConnection = async () => {
     try {
         const response = await fetch('http://127.0.0.1:5001/music-form-4cfd6/us-central1/testConnection', {
             method: 'POST',
+            mode: 'cors',
+            credentials: 'same-origin',
             headers: {
                 'Content-Type': 'application/json',
+                'Accept': 'application/json',
             }
         });
         
@@ -61,13 +64,19 @@ const testEmulatorConnection = async () => {
     }
 };
 
-// Create song function using fetch
+// Test the connection immediately
+testEmulatorConnection();
+
+// Create song function using fetch with proper CORS headers
 const createSong = async (title) => {
     try {
         const response = await fetch('http://127.0.0.1:5001/music-form-4cfd6/us-central1/createNewSong', {
             method: 'POST',
+            mode: 'cors',
+            credentials: 'same-origin',
             headers: {
                 'Content-Type': 'application/json',
+                'Accept': 'application/json',
             },
             body: JSON.stringify({ title })
         });
@@ -84,9 +93,6 @@ const createSong = async (title) => {
         throw error;
     }
 };
-
-// Test the connection immediately
-testEmulatorConnection();
 
 // Add event listener for song creation
 document.getElementById('createSongButton')?.addEventListener('click', async () => {
