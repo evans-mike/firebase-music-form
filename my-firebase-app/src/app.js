@@ -6,40 +6,62 @@ import { firebaseConfig } from './config';
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
-const functions = getFunctions(app);
+const functions = getFunctions(app, 'us-central1');
 
 // Connect to emulators in development
 if (window.location.hostname === 'localhost') {
-    // Connect to auth emulator WITHOUT the "disableWarnings" option
-    connectAuthEmulator(auth, 'http://localhost:9099');
-    connectFunctionsEmulator(functions, 'localhost', 5001);
-    console.log('Connected to Firebase emulators');
+    try {
+        // Use 127.0.0.1 instead of localhost
+        connectAuthEmulator(auth, 'http://127.0.0.1:9099', { disableWarnings: false });
+        connectFunctionsEmulator(functions, '127.0.0.1', 5001);
+        console.log('Connected to Firebase emulators');
 
-    // Create test user with better error handling
-    const createTestUser = async () => {
-        const testEmail = 'test@example.com';
-        const testPassword = 'password123';
-        
-        try {
-            const userCredential = await createUserWithEmailAndPassword(auth, testEmail, testPassword);
-            console.log('Test user created:', userCredential.user.email);
-        } catch (error) {
-            if (error.code === 'auth/email-already-in-use') {
-                console.log('Test user already exists, trying to sign in...');
+        // Create test user with better error handling
+        const createTestUser = async () => {
+            const testEmail = 'test@example.com';
+            const testPassword = 'password123';
+            
+            try {
+                // First try to sign in
                 try {
                     const userCredential = await signInWithEmailAndPassword(auth, testEmail, testPassword);
-                    console.log('Signed in as test user:', userCredential.user.email);
+                    console.log('Signed in as existing test user:', userCredential.user.email);
                 } catch (signInError) {
-                    console.error('Error signing in test user:', signInError);
+                    // If sign in fails, try to create the user
+                    if (signInError.code === 'auth/user-not-found') {
+                        const newUserCredential = await createUserWithEmailAndPassword(auth, testEmail, testPassword);
+                        console.log('Created new test user:', newUserCredential.user.email);
+                    } else {
+                        throw signInError;
+                    }
                 }
-            } else {
-                console.error('Error creating test user:', error);
+            } catch (error) {
+                console.error('Authentication error:', error);
+                // Add more detailed error information
+                console.error('Error code:', error.code);
+                console.error('Error message:', error.message);
             }
-        }
-    };
+        };
 
-    createTestUser();
+        createTestUser();
+    } catch (error) {
+        console.error('Error setting up emulators:', error);
+    }
 }
+
+// Add this function to test the connection
+const testEmulatorConnection = async () => {
+    try {
+        const testFunction = httpsCallable(functions, 'testConnection');
+        const result = await testFunction({ test: true });
+        console.log('Function emulator test result:', result.data);
+    } catch (error) {
+        console.error('Function emulator test error:', error);
+    }
+};
+
+// Test the connection immediately
+testEmulatorConnection();
 
 
 // Auth state observer

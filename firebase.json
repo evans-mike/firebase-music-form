@@ -1,17 +1,19 @@
 {
   "functions": {
-    "source": "functions",
-    "emulators": {
-      "auth": {
-        "port": 9099
-      },
-      "functions": {
-        "port": 5001
-      },
-      "ui": {
-        "enabled": true,
-        "port": 4000
-      }
+    "source": "functions"
+  },
+  "emulators": {
+    "auth": {
+      "host": "127.0.0.1",
+      "port": 9099
+    },
+    "functions": {
+      "host": "127.0.0.1",
+      "port": 5001
+    },
+    "ui": {
+      "enabled": true,
+      "port": 4000
     }
   }
 }
