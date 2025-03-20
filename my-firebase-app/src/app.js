@@ -1,10 +1,11 @@
-import { initializeApp } from 'firebase/app';
-import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, connectAuthEmulator, createUserWithEmailAndPassword, signOut } from 'firebase/auth';
-import { getFunctions, httpsCallable, connectFunctionsEmulator } from 'firebase/functions';
-import { firebaseConfig } from './config';
+import firebase from 'firebase/app';
+import 'firebase/auth';
+import 'firebase/firestore';
+import firebaseConfig from './firebaseConfig';
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
+if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+}
 const auth = getAuth(app);
 const functions = getFunctions(app, 'us-central1');
 

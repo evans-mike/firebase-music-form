@@ -8,7 +8,7 @@ require('dotenv').config();
 admin.initializeApp();
 
 const bigqueryConfig = {
-    projectId: process.env.GOOGLE_CLOUD_PROJECT
+    projectId: process.env.GOOGLE_CLOUD_PROJECT 
 };
 
 if (process.env.NODE_ENV !== 'production') {
@@ -81,4 +81,4 @@ app.post('/submitOccurrences', (req, res) => {
     }
 });
 
-exports.api = functions.https.onRequest(app);
+module.exports = app; // Export the app
