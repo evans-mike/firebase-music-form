@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase/app';
-import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
+import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from 'firebase/auth';
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { firebaseConfig } from './config';
 
@@ -8,70 +8,91 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const functions = getFunctions(app);
 
-// Rest of your app.js code modified to use modern Firebase SDK
-function login() {
-    const email = document.getElementById('email').value;
-    const password = document.getElementById('password').value;
-
-    signInWithEmailAndPassword(auth, email, password)
-        .then((userCredential) => {
-            document.getElementById('login-message').innerText = "Login successful!";
-            document.getElementById('login-section').style.display = "none";
-            document.getElementById('app-section').style.display = "block";
-        })
-        .catch((error) => {
-            document.getElementById('login-message').innerText = `Error: ${error.message}`;
-        });
+if (window.location.hostname === 'localhost') {
+    connectFunctionsEmulator(functions, 'localhost', 5001);
 }
 
-function createNewSong() {
-    const title = document.getElementById('new-song-title').value;
-    const createSong = firebase.functions().httpsCallable('createNewSong');
+// Auth state observer
+onAuthStateChanged(auth, (user) => {
+    if (user) {
+        // User is signed in
+        document.getElementById('login-section').style.display = "none";
+        document.getElementById('app-section').style.display = "block";
+        document.getElementById('login-message').innerText = "";
+    } else {
+        // User is signed out
+        document.getElementById('login-section').style.display = "block";
+        document.getElementById('app-section').style.display = "none";
+    }
+});
 
-    createSong({ title: title })
-        .then((result) => {
-            document.getElementById('create-song-message').innerText = result.data.message;
-        })
-        .catch((error) => {
-            document.getElementById('create-song-message').innerText = `Error: ${error.message}`;
-        });
-}
+// Add event listeners when the DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+    // Login button
+    document.getElementById('loginButton').addEventListener('click', () => {
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
 
-function addOccurrenceRow() {
-    const form = document.getElementById('occurrences-form');
-    const row = document.createElement('div');
-
-    row.innerHTML = `
-        <input type="text" name="date" placeholder="Date (MM/DD/YYYY)">
-        <input type="text" name="title" placeholder="Title">
-        <input type="checkbox" name="closer_flag"> Closer
-        <select name="service">
-            <option value="AM">AM</option>
-            <option value="PM">PM</option>
-        </select>
-    `;
-    form.appendChild(row);
-}
-
-function submitOccurrences() {
-    const form = document.getElementById('occurrences-form');
-    const rows = [];
-    form.querySelectorAll('div').forEach(row => {
-        const date = row.querySelector('input[name="date"]').value;
-        const title = row.querySelector('input[name="title"]').value;
-        const closer_flag = row.querySelector('input[name="closer_flag"]').checked;
-        const service = row.querySelector('select[name="service"]').value;
-
-        rows.push({ date, title, closer_flag, service });
+        signInWithEmailAndPassword(auth, email, password)
+            .then((userCredential) => {
+                console.log('Login successful:', userCredential.user.email);
+            })
+            .catch((error) => {
+                console.error('Login error:', error);
+                document.getElementById('login-message').innerText = `Error: ${error.message}`;
+            });
     });
 
-    const submitOccurrences = firebase.functions().httpsCallable('submitOccurrences');
+    // Create song button
+    document.getElementById('createSongButton').addEventListener('click', async () => {
+        const title = document.getElementById('new-song-title').value;
+        const createNewSongFunction = httpsCallable(functions, 'createNewSong');
 
-    submitOccurrences({ rows: rows })
-        .then((result) => {
+        try {
+            const result = await createNewSongFunction({ title });
+            document.getElementById('create-song-message').innerText = result.data.message;
+        } catch (error) {
+            document.getElementById('create-song-message').innerText = `Error: ${error.message}`;
+        }
+    });
+
+    // Add row button
+    document.getElementById('addRowButton').addEventListener('click', () => {
+        const form = document.getElementById('occurrences-form');
+        const row = document.createElement('div');
+        row.className = 'occurrence-row';
+
+        row.innerHTML = `
+            <input type="date" name="date" required>
+            <input type="text" name="title" placeholder="Title" required>
+            <label>
+                <input type="checkbox" name="closer_flag"> Closer
+            </label>
+            <select name="service" required>
+                <option value="AM">AM</option>
+                <option value="PM">PM</option>
+            </select>
+        `;
+        form.appendChild(row);
+    });
+
+    // Submit occurrences button
+    document.getElementById('submitOccurrencesButton').addEventListener('click', async () => {
+        const form = document.getElementById('occurrences-form');
+        const rows = Array.from(form.querySelectorAll('.occurrence-row')).map(row => ({
+            date: row.querySelector('input[name="date"]').value,
+            title: row.querySelector('input[name="title"]').value,
+            closer_flag: row.querySelector('input[name="closer_flag"]').checked,
+            service: row.querySelector('select[name="service"]').value
+        }));
+
+        const submitOccurrencesFunction = httpsCallable(functions, 'submitOccurrences');
+
+        try {
+            const result = await submitOccurrencesFunction({ rows });
             document.getElementById('submit-occurrences-message').innerText = result.data.message;
-        })
-        .catch((error) => {
+        } catch (error) {
             document.getElementById('submit-occurrences-message').innerText = `Error: ${error.message}`;
-        });
-}
+        }
+    });
+});
