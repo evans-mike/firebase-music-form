@@ -1,6 +1,6 @@
 import { initializeApp } from 'firebase/app';
-import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from 'firebase/auth';
-import { getFunctions, httpsCallable } from 'firebase/functions';
+import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, connectAuthEmulator, createUserWithEmailAndPassword } from 'firebase/auth';
+import { getFunctions, httpsCallable, connectFunctionsEmulator } from 'firebase/functions';
 import { firebaseConfig } from './config';
 
 // Initialize Firebase
@@ -8,8 +8,26 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const functions = getFunctions(app);
 
+// Connect to emulators in development
 if (window.location.hostname === 'localhost') {
+    connectAuthEmulator(auth, 'http://localhost:9099', { disableWarnings: true });
     connectFunctionsEmulator(functions, 'localhost', 5001);
+    console.log('Connected to Firebase emulators');
+
+    // Create a test user
+    const testEmail = 'test@example.com';
+    const testPassword = 'password123';
+
+    createUserWithEmailAndPassword(auth, testEmail, testPassword)
+        .then((userCredential) => {
+            console.log('Test user created:', userCredential.user.email);
+        })
+        .catch((error) => {
+            // If error code is 'auth/email-already-in-use', that's fine - user already exists
+            if (error.code !== 'auth/email-already-in-use') {
+                console.error('Error creating test user:', error);
+            }
+        });
 }
 
 // Auth state observer
