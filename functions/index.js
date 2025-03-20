@@ -1,18 +1,10 @@
 const functions = require('firebase-functions');
 const admin = require('firebase-admin');
 const { BigQuery } = require('@google-cloud/bigquery');
-const cors = require('cors');
-const express = require('express');
 require('dotenv').config();
 
 admin.initializeApp();
 
-const app = express();
-
-// Use CORS middleware
-app.use(cors({ origin: true }));
-
-// Initialize BigQuery
 const bigqueryConfig = {
     projectId: process.env.GOOGLE_CLOUD_PROJECT || 'music-form-4cfd6'
 };
@@ -23,57 +15,58 @@ if (process.env.NODE_ENV !== 'production') {
 
 const bigquery = new BigQuery(bigqueryConfig);
 
-// Test connection endpoint
-exports.testConnection = functions.https.onCall(async (data, context) => {
-    return {
+// Test connection endpoint - no auth required
+exports.testConnection = functions.https.onRequest((req, res) => {
+    res.set('Access-Control-Allow-Origin', 'http://localhost:5173');
+    res.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    res.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    
+    if (req.method === 'OPTIONS') {
+        res.status(204).send('');
+        return;
+    }
+
+    res.json({
         message: 'Connection successful!',
         timestamp: new Date().toISOString()
-    };
+    });
 });
 
-exports.createNewSong = functions.https.onCall(async (data, context) => {
+exports.createNewSong = functions.https.onRequest((req, res) => {
+    res.set('Access-Control-Allow-Origin', 'http://localhost:5173');
+    res.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    res.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    
+    if (req.method === 'OPTIONS') {
+        res.status(204).send('');
+        return;
+    }
+
     // Log the request
     console.log('CreateNewSong function called', {
-        auth: context.auth ? 'authenticated' : 'not authenticated',
-        data: data
+        headers: req.headers,
+        body: req.body
     });
 
-    // Check authentication
-    if (!context.auth) {
-        throw new functions.https.HttpsError(
-            'unauthenticated',
-            'Must be logged in to create songs'
-        );
+    const data = req.body;
+
+    if (!data.title) {
+        res.status(400).json({
+            error: 'Title is required'
+        });
+        return;
     }
 
-    try {
-        // Test BigQuery connectivity
-        const [datasets] = await bigquery.getDatasets();
-        console.log('BigQuery connected, datasets:', datasets.map(d => d.id));
+    const row = {
+        id: require('uuid').v4(),
+        title: data.title,
+        created_at: new Date().toISOString()
+    };
 
-        const row = {
-            id: require('uuid').v4(),
-            title: data.title,
-            created_by: context.auth.uid,
-            created_at: new Date().toISOString()
-        };
-
-        // Insert the row
-        await bigquery
-            .dataset(process.env.BIGQUERY_DATASET_ID)
-            .table('app_songs')
-            .insert([row]);
-
-        return { 
-            success: true, 
-            message: 'Song created successfully!',
-            songId: row.id
-        };
-    } catch (error) {
-        console.error('Error in createNewSong:', error);
-        throw new functions.https.HttpsError(
-            'internal',
-            `Failed to create song: ${error.message}`
-        );
-    }
+    // For testing, just return success
+    res.json({ 
+        success: true, 
+        message: 'Song created successfully!',
+        songId: row.id
+    });
 });

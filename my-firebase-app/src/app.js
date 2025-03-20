@@ -1,6 +1,6 @@
 import { initializeApp } from 'firebase/app';
-import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, connectAuthEmulator, createUserWithEmailAndPassword } from 'firebase/auth';
-import { getFunctions, httpsCallable, connectFunctionsEmulator } from 'firebase/functions';
+import { getAuth, signInWithEmailAndPassword, connectAuthEmulator, createUserWithEmailAndPassword } from 'firebase/auth';
+import { getFunctions, httpsCallable } from 'firebase/functions';
 import { firebaseConfig } from './config';
 
 // Initialize Firebase
@@ -10,141 +10,139 @@ const functions = getFunctions(app, 'us-central1');
 
 // Connect to emulators in development
 if (window.location.hostname === 'localhost') {
-    try {
-        // Use 127.0.0.1 instead of localhost
-        connectAuthEmulator(auth, 'http://127.0.0.1:9099', { disableWarnings: false });
-        connectFunctionsEmulator(functions, '127.0.0.1', 5001);
-        console.log('Connected to Firebase emulators');
+    connectAuthEmulator(auth, 'http://127.0.0.1:9099');
+    console.log('Connected to Firebase emulators');
 
-        // Create test user with better error handling
-        const createTestUser = async () => {
-            const testEmail = 'test@example.com';
-            const testPassword = 'password123';
-            
+    // Create test user with better error handling
+    const createTestUser = async () => {
+        const testEmail = 'test@example.com';
+        const testPassword = 'password123';
+        
+        try {
+            // First try to sign in
             try {
-                // First try to sign in
-                try {
-                    const userCredential = await signInWithEmailAndPassword(auth, testEmail, testPassword);
-                    console.log('Signed in as existing test user:', userCredential.user.email);
-                } catch (signInError) {
-                    // If sign in fails, try to create the user
-                    if (signInError.code === 'auth/user-not-found') {
-                        const newUserCredential = await createUserWithEmailAndPassword(auth, testEmail, testPassword);
-                        console.log('Created new test user:', newUserCredential.user.email);
-                    } else {
-                        throw signInError;
-                    }
+                const userCredential = await signInWithEmailAndPassword(auth, testEmail, testPassword);
+                console.log('Signed in as existing test user:', userCredential.user.email);
+            } catch (signInError) {
+                // If sign in fails, try to create the user
+                if (signInError.code === 'auth/user-not-found') {
+                    const newUserCredential = await createUserWithEmailAndPassword(auth, testEmail, testPassword);
+                    console.log('Created new test user:', newUserCredential.user.email);
+                } else {
+                    console.error('Sign in error:', signInError);
                 }
-            } catch (error) {
-                console.error('Authentication error:', error);
-                // Add more detailed error information
-                console.error('Error code:', error.code);
-                console.error('Error message:', error.message);
             }
-        };
+        } catch (error) {
+            console.error('Authentication error:', error);
+        }
+    };
 
-        createTestUser();
-    } catch (error) {
-        console.error('Error setting up emulators:', error);
-    }
+    createTestUser();
 }
 
-// Add this function to test the connection
+// Test the connection using fetch instead of callable
 const testEmulatorConnection = async () => {
     try {
-        const testFunction = httpsCallable(functions, 'testConnection');
-        const result = await testFunction({ test: true });
-        console.log('Function emulator test result:', result.data);
+        const response = await fetch('http://127.0.0.1:5001/music-form-4cfd6/us-central1/testConnection', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        console.log('Function emulator test result:', data);
     } catch (error) {
         console.error('Function emulator test error:', error);
+    }
+};
+
+// Create song function using fetch
+const createSong = async (title) => {
+    try {
+        const response = await fetch('http://127.0.0.1:5001/music-form-4cfd6/us-central1/createNewSong', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ title })
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        console.log('Create song result:', data);
+        return data;
+    } catch (error) {
+        console.error('Error creating song:', error);
+        throw error;
     }
 };
 
 // Test the connection immediately
 testEmulatorConnection();
 
+// Add event listener for song creation
+document.getElementById('createSongButton')?.addEventListener('click', async () => {
+    const titleInput = document.getElementById('new-song-title');
+    const messageDiv = document.getElementById('create-song-message');
+    
+    if (!titleInput || !titleInput.value) {
+        if (messageDiv) messageDiv.innerText = 'Please enter a song title';
+        return;
+    }
 
-// Auth state observer
-onAuthStateChanged(auth, (user) => {
-    if (user) {
-        // User is signed in
-        document.getElementById('login-section').style.display = "none";
-        document.getElementById('app-section').style.display = "block";
-        document.getElementById('login-message').innerText = "";
-    } else {
-        // User is signed out
-        document.getElementById('login-section').style.display = "block";
-        document.getElementById('app-section').style.display = "none";
+    try {
+        const result = await createSong(titleInput.value);
+        if (messageDiv) messageDiv.innerText = result.message;
+        titleInput.value = ''; // Clear input on success
+    } catch (error) {
+        if (messageDiv) messageDiv.innerText = `Error: ${error.message}`;
     }
 });
 
-// Add event listeners when the DOM is loaded
-document.addEventListener('DOMContentLoaded', () => {
-    // Login button
-    document.getElementById('loginButton').addEventListener('click', () => {
-        const email = document.getElementById('email').value;
-        const password = document.getElementById('password').value;
+// Add row button
+document.getElementById('addRowButton').addEventListener('click', () => {
+    const form = document.getElementById('occurrences-form');
+    const row = document.createElement('div');
+    row.className = 'occurrence-row';
 
-        signInWithEmailAndPassword(auth, email, password)
-            .then((userCredential) => {
-                console.log('Login successful:', userCredential.user.email);
-            })
-            .catch((error) => {
-                console.error('Login error:', error);
-                document.getElementById('login-message').innerText = `Error: ${error.message}`;
-            });
-    });
+    row.innerHTML = `
+        <input type="date" name="date" required>
+        <input type="text" name="title" placeholder="Title" required>
+        <label>
+            <input type="checkbox" name="closer_flag"> Closer
+        </label>
+        <select name="service" required>
+            <option value="AM">AM</option>
+            <option value="PM">PM</option>
+        </select>
+    `;
+    form.appendChild(row);
+});
 
-    // Create song button
-    document.getElementById('createSongButton').addEventListener('click', async () => {
-        const title = document.getElementById('new-song-title').value;
-        const createNewSongFunction = httpsCallable(functions, 'createNewSong');
+// Submit occurrences button
+document.getElementById('submitOccurrencesButton').addEventListener('click', async () => {
+    const form = document.getElementById('occurrences-form');
+    const rows = Array.from(form.querySelectorAll('.occurrence-row')).map(row => ({
+        date: row.querySelector('input[name="date"]').value,
+        title: row.querySelector('input[name="title"]').value,
+        closer_flag: row.querySelector('input[name="closer_flag"]').checked,
+        service: row.querySelector('select[name="service"]').value
+    }));
 
-        try {
-            const result = await createNewSongFunction({ title });
-            document.getElementById('create-song-message').innerText = result.data.message;
-        } catch (error) {
-            document.getElementById('create-song-message').innerText = `Error: ${error.message}`;
-        }
-    });
+    const submitOccurrencesFunction = httpsCallable(functions, 'submitOccurrences');
 
-    // Add row button
-    document.getElementById('addRowButton').addEventListener('click', () => {
-        const form = document.getElementById('occurrences-form');
-        const row = document.createElement('div');
-        row.className = 'occurrence-row';
-
-        row.innerHTML = `
-            <input type="date" name="date" required>
-            <input type="text" name="title" placeholder="Title" required>
-            <label>
-                <input type="checkbox" name="closer_flag"> Closer
-            </label>
-            <select name="service" required>
-                <option value="AM">AM</option>
-                <option value="PM">PM</option>
-            </select>
-        `;
-        form.appendChild(row);
-    });
-
-    // Submit occurrences button
-    document.getElementById('submitOccurrencesButton').addEventListener('click', async () => {
-        const form = document.getElementById('occurrences-form');
-        const rows = Array.from(form.querySelectorAll('.occurrence-row')).map(row => ({
-            date: row.querySelector('input[name="date"]').value,
-            title: row.querySelector('input[name="title"]').value,
-            closer_flag: row.querySelector('input[name="closer_flag"]').checked,
-            service: row.querySelector('select[name="service"]').value
-        }));
-
-        const submitOccurrencesFunction = httpsCallable(functions, 'submitOccurrences');
-
-        try {
-            const result = await submitOccurrencesFunction({ rows });
-            document.getElementById('submit-occurrences-message').innerText = result.data.message;
-        } catch (error) {
-            document.getElementById('submit-occurrences-message').innerText = `Error: ${error.message}`;
-        }
-    });
+    try {
+        const result = await submitOccurrencesFunction({ rows });
+        document.getElementById('submit-occurrences-message').innerText = result.data.message;
+    } catch (error) {
+        document.getElementById('submit-occurrences-message').innerText = `Error: ${error.message}`;
+    }
 });
