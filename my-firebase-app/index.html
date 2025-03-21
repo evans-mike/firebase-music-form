@@ -1,47 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Music Form</title>
-</head>
-<body>
-    <!-- Login Section -->
-    <section id="login-section">
-        <h2>Login</h2>
-        <div class="form-group">
-            <input type="email" id="email" placeholder="Email">
-            <input type="password" id="password" placeholder="Password">
-            <button id="loginButton">Login</button>
-        </div>
-        <p id="login-message"></p>
-    </section>
-
-    <!-- Main App Section (hidden by default) -->
-    <section id="app-section" style="display: none;">
-        <h2>Music Form</h2>
-        
-        <!-- New Song Form -->
-        <div class="form-section">
-            <h3>Create New Song</h3>
-            <input type="text" id="new-song-title" placeholder="Song Title">
-            <button id="createSongButton">Create Song</button>
-            <p id="create-song-message"></p>
-        </div>
-
-        <!-- Occurrences Form -->
-        <div class="form-section">
-            <h3>Song Occurrences</h3>
-            <form id="occurrences-form">
-                <!-- Rows will be added here -->
-            </form>
-            <button id="addRowButton">Add Row</button>
-            <button id="submitOccurrencesButton">Submit Occurrences</button>
-            <p id="submit-occurrences-message"></p>
-        </div>
-    </section>
-
-    <!-- Your App Code -->
-    <script type="module" src="/src/app.js"></script>
-</body>
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
 </html>

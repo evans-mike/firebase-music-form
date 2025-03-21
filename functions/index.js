@@ -1,8 +1,7 @@
-const functions = require('firebase-functions');
+const { https } = require('firebase-functions/v2');
 const admin = require('firebase-admin');
 const { BigQuery } = require('@google-cloud/bigquery');
-const cors = require('cors');
-const express = require('express');
+const cors = require('cors')({ origin: true });
 require('dotenv').config();
 
 admin.initializeApp();
@@ -16,12 +15,12 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 const bigquery = new BigQuery(bigqueryConfig);
-const app = express();
-app.use(cors({ origin: true }));
-app.use(express.json());
 
-// Test connection route
-app.post('/testConnection', (req, res) => {
+// Test connection endpoint
+exports.testConnection = https.onRequest({
+    cors: true,
+    maxInstances: 10,
+}, (req, res) => {
     res.status(200).send({
         message: 'Connection successful!',
         timestamp: new Date().toISOString(),
@@ -29,56 +28,57 @@ app.post('/testConnection', (req, res) => {
     });
 });
 
-// Create new song route
-app.post('/createNewSong', (req, res) => {
-    // Log the request
-    console.log('CreateNewSong function called', {
-        auth: req.auth,
-        data: req.body
-    });
-
-    if (!req.auth) {
-        return res.status(401).send('Must be logged in to create songs');
+// Create new song endpoint
+exports.createNewSong = https.onCall({
+    minInstances: 0,
+    maxInstances: 10,
+    memory: "256MiB",
+    cors: true,
+    enforceAppCheck: false,
+}, (data, context) => {
+    if (!context.auth) {
+        throw new Error('Must be logged in to create songs');
     }
 
-    if (!req.body.title) {
-        return res.status(400).send('Title is required');
+    if (!data.title) {
+        throw new Error('Title is required');
     }
 
     try {
         const row = {
             id: require('uuid').v4(),
-            title: req.body.title,
-            created_by: req.auth.uid,
+            title: data.title,
+            created_by: context.auth.uid,
             created_at: new Date().toISOString()
         };
 
-        // For testing, just return success
-        res.status(200).send({ 
-            success: true, 
+        return {
+            success: true,
             message: 'Song created successfully!',
             songId: row.id
-        });
+        };
     } catch (error) {
-        console.error('Error:', error);
-        res.status(500).send('Failed to create song: ' + error.message);
+        throw new Error(error.message);
     }
 });
 
-// Submit occurrences route
-app.post('/submitOccurrences', (req, res) => {
-    const rows = req.body.rows;
+// Submit occurrences endpoint
+exports.submitOccurrences = https.onCall({
+    minInstances: 0,
+    maxInstances: 10,
+    memory: "256MiB",
+    cors: true,
+    enforceAppCheck: false,
+}, (data, context) => {
+    const rows = data.rows;
     if (!rows || !Array.isArray(rows)) {
-        return res.status(400).send({ message: "Invalid rows data" });
+        throw new Error('Invalid rows data');
     }
 
     try {
         // Your logic to handle occurrences goes here
-        res.status(200).send({ message: 'Occurrences submitted successfully' });
+        return { message: 'Occurrences submitted successfully' };
     } catch (error) {
-        console.error('Error:', error);
-        res.status(500).send('Failed to submit occurrences: ' + error.message);
+        throw new Error(error.message);
     }
 });
-
-module.exports = app; // Export the app

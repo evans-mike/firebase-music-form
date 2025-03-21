@@ -1,13 +1,18 @@
-import { defineConfig } from 'vite';
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
 
 export default defineConfig({
-  server: {
-    proxy: {
-      '/music-form-4cfd6': {
-        target: 'http://127.0.0.1:5001',
-        changeOrigin: true,
-        secure: false
-      }
-    }
-  }
+  plugins: [react()],
+  build: {
+    outDir: "dist",
+    sourcemap: false,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          firebase: ["firebase/app", "firebase/auth", "firebase/functions"],
+          vendor: ["react", "react-dom"],
+        },
+      },
+    },
+  },
 });
