@@ -59,7 +59,7 @@ export function OccurrenceForm() {
               onChange={(e) => updateOccurrence(index, 'date', e.target.value)}
               required
             />
-            
+
             <input
               type="text"
               value={occurrence.title}
@@ -67,7 +67,7 @@ export function OccurrenceForm() {
               placeholder="Song Title"
               required
             />
-            
+
             <label className="closer-flag">
               <input
                 type="checkbox"
@@ -76,7 +76,7 @@ export function OccurrenceForm() {
               />
               Closer
             </label>
-            
+
             <select
               value={occurrence.service}
               onChange={(e) => updateOccurrence(index, 'service', e.target.value)}
@@ -87,8 +87,8 @@ export function OccurrenceForm() {
             </select>
 
             {occurrences.length > 1 && (
-              <button 
-                type="button" 
+              <button
+                type="button"
                 onClick={() => removeRow(index)}
                 className="remove-row"
               >
@@ -103,7 +103,7 @@ export function OccurrenceForm() {
         <button type="button" onClick={addRow}>
           Add Row
         </button>
-        
+
         <button type="submit" disabled={loading}>
           {loading ? 'Submitting...' : 'Submit Occurrences'}
         </button>
