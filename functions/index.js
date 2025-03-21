@@ -1,6 +1,7 @@
 const functions = require('firebase-functions');
 const admin = require('firebase-admin');
 const { BigQuery } = require('@google-cloud/bigquery');
+const cors = require('cors')({ origin: true });
 
 admin.initializeApp();
 const bigquery = new BigQuery();
