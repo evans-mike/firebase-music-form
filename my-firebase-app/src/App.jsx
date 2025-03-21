@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from './firebase';
-import { LoginForm } from './components/LoginForm';
-import { SongForm } from './components/SongForm';
-import { OccurrenceForm } from './components/OccurrenceForm';
+import { LoginForm } from './components/LoginForm.jsx';
+import { SongForm } from './components/SongForm.jsx';
+import { OccurrenceForm } from './components/OccurrenceForm.jsx';
 
 export function App() {
   const [user, setUser] = useState(null);
