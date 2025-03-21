@@ -2,22 +2,8 @@
   "functions": {
     "source": "functions"
   },
-  "emulators": {
-    "auth": {
-      "host": "127.0.0.1",
-      "port": 9099
-    },
-    "functions": {
-      "host": "127.0.0.1",
-      "port": 5001
-    },
-    "ui": {
-      "enabled": true,
-      "port": 4000
-    }
-  },
   "hosting": {
-    "public": "my-firebase-app",
+    "public": "dist",
     "ignore": [
       "firebase.json",
       "**/.*",
