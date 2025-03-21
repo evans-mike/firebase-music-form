@@ -16,6 +16,6 @@ export const auth = getAuth(app);
 export const functions = getFunctions(app);
 
 if (import.meta.env.DEV) {
-  // Use localhost instead of 127.0.0.1
+  // Use 'localhost' instead of '127.0.0.1'
   connectFunctionsEmulator(functions, 'localhost', 5001);
 }

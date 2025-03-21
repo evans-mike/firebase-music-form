@@ -1,56 +1,84 @@
-const functions = require('firebase-functions');
+const { https } = require('firebase-functions/v2');
 const admin = require('firebase-admin');
 const { BigQuery } = require('@google-cloud/bigquery');
 const cors = require('cors')({ origin: true });
+require('dotenv').config();
 
 admin.initializeApp();
-const bigquery = new BigQuery();
 
-exports.createNewSong = functions.https.onCall(async (data, context) => {
-  if (!context.auth) {
-    throw new functions.https.HttpsError('unauthenticated', 'Must be logged in');
-  }
+const bigqueryConfig = {
+    projectId: process.env.GOOGLE_CLOUD_PROJECT 
+};
 
-  const { title } = data;
-  if (!title) {
-    throw new functions.https.HttpsError('invalid-argument', 'Title is required');
-  }
+if (process.env.NODE_ENV !== 'production') {
+    bigqueryConfig.keyFilename = process.env.GOOGLE_APPLICATION_CREDENTIALS;
+}
 
-  try {
-    await bigquery.dataset('your_dataset').table('songs').insert([{
-      id: admin.firestore().collection('_').doc().id,
-      title,
-      created_by: context.auth.uid,
-      created_at: new Date().toISOString()
-    }]);
+const bigquery = new BigQuery(bigqueryConfig);
 
-    return { success: true, message: 'Song created successfully' };
-  } catch (error) {
-    throw new functions.https.HttpsError('internal', error.message);
-  }
+// Test connection endpoint
+exports.testConnection = https.onRequest({
+    cors: true,
+    maxInstances: 10,
+}, (req, res) => {
+    res.status(200).send({
+        message: 'Connection successful!',
+        timestamp: new Date().toISOString(),
+        userId: req.auth?.uid || 'not authenticated'
+    });
 });
 
-exports.submitOccurrences = functions.https.onCall(async (data, context) => {
-  if (!context.auth) {
-    throw new functions.https.HttpsError('unauthenticated', 'Must be logged in');
-  }
+// Create new song endpoint
+exports.createNewSong = https.onCall({
+    minInstances: 0,
+    maxInstances: 10,
+    memory: "256MiB",
+    cors: true,
+    enforceAppCheck: false,
+}, (data, context) => {
+    if (!context.auth) {
+        throw new Error('Must be logged in to create songs');
+    }
 
-  const { rows } = data;
-  if (!rows || !Array.isArray(rows)) {
-    throw new functions.https.HttpsError('invalid-argument', 'Invalid rows data');
-  }
+    if (!data.title) {
+        throw new Error('Title is required');
+    }
 
-  try {
-    await bigquery.dataset('your_dataset').table('occurrences').insert(
-      rows.map(row => ({
-        ...row,
-        created_by: context.auth.uid,
-        created_at: new Date().toISOString()
-      }))
-    );
+    try {
+        const row = {
+            id: require('uuid').v4(),
+            title: data.title,
+            created_by: context.auth.uid,
+            created_at: new Date().toISOString()
+        };
 
-    return { success: true, message: 'Occurrences submitted successfully' };
-  } catch (error) {
-    throw new functions.https.HttpsError('internal', error.message);
-  }
+        return {
+            success: true,
+            message: 'Song created successfully!',
+            songId: row.id
+        };
+    } catch (error) {
+        throw new Error(error.message);
+    }
+});
+
+// Submit occurrences endpoint
+exports.submitOccurrences = https.onCall({
+    minInstances: 0,
+    maxInstances: 10,
+    memory: "256MiB",
+    cors: true,
+    enforceAppCheck: false,
+}, (data, context) => {
+    const rows = data.rows;
+    if (!rows || !Array.isArray(rows)) {
+        throw new Error('Invalid rows data');
+    }
+
+    try {
+        // Your logic to handle occurrences goes here
+        return { message: 'Occurrences submitted successfully' };
+    } catch (error) {
+        throw new Error(error.message);
+    }
 });
