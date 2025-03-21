@@ -15,5 +15,19 @@
       "enabled": true,
       "port": 4000
     }
+  },
+  "hosting": {
+    "public": "my-firebase-app",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ]
   }
 }
