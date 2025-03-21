@@ -1,16 +1,14 @@
-my-firebase-app/
-├── public/
-│   └── favicon.ico
-├── src/
+firebase-music-form/
+├── src/                  # React frontend code
 │   ├── main.jsx
 │   ├── App.jsx
-│   ├── firebase.js
-│   ├── api.js
-│   ├── main.css
 │   └── components/
-│       ├── LoginForm.jsx
-│       ├── SongForm.jsx
-│       └── OccurrenceForm.jsx
-├── index.html
-├── package.json
-└── vite.config.js
+├── functions/            # Firebase functions
+│   ├── index.js
+│   └── package.json
+├── public/              # Static files
+├── index.html           # Entry point for React app
+├── vite.config.js       # Vite configuration
+├── package.json         # Main package.json for frontend
+├── firebase.json        # Firebase configuration
+└── .firebaserc         # Firebase project configuration
