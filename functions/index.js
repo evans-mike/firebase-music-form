@@ -1,84 +1,55 @@
 const functions = require('firebase-functions');
 const admin = require('firebase-admin');
 const { BigQuery } = require('@google-cloud/bigquery');
-const cors = require('cors');
-const express = require('express');
-require('dotenv').config();
 
 admin.initializeApp();
+const bigquery = new BigQuery();
 
-const bigqueryConfig = {
-    projectId: process.env.GOOGLE_CLOUD_PROJECT 
-};
+exports.createNewSong = functions.https.onCall(async (data, context) => {
+  if (!context.auth) {
+    throw new functions.https.HttpsError('unauthenticated', 'Must be logged in');
+  }
 
-if (process.env.NODE_ENV !== 'production') {
-    bigqueryConfig.keyFilename = process.env.GOOGLE_APPLICATION_CREDENTIALS;
-}
+  const { title } = data;
+  if (!title) {
+    throw new functions.https.HttpsError('invalid-argument', 'Title is required');
+  }
 
-const bigquery = new BigQuery(bigqueryConfig);
-const app = express();
-app.use(cors({ origin: true }));
-app.use(express.json());
+  try {
+    await bigquery.dataset('your_dataset').table('songs').insert([{
+      id: admin.firestore().collection('_').doc().id,
+      title,
+      created_by: context.auth.uid,
+      created_at: new Date().toISOString()
+    }]);
 
-// Test connection route
-app.post('/testConnection', (req, res) => {
-    res.status(200).send({
-        message: 'Connection successful!',
-        timestamp: new Date().toISOString(),
-        userId: req.auth?.uid || 'not authenticated'
-    });
+    return { success: true, message: 'Song created successfully' };
+  } catch (error) {
+    throw new functions.https.HttpsError('internal', error.message);
+  }
 });
 
-// Create new song route
-app.post('/createNewSong', (req, res) => {
-    // Log the request
-    console.log('CreateNewSong function called', {
-        auth: req.auth,
-        data: req.body
-    });
+exports.submitOccurrences = functions.https.onCall(async (data, context) => {
+  if (!context.auth) {
+    throw new functions.https.HttpsError('unauthenticated', 'Must be logged in');
+  }
 
-    if (!req.auth) {
-        return res.status(401).send('Must be logged in to create songs');
-    }
+  const { rows } = data;
+  if (!rows || !Array.isArray(rows)) {
+    throw new functions.https.HttpsError('invalid-argument', 'Invalid rows data');
+  }
 
-    if (!req.body.title) {
-        return res.status(400).send('Title is required');
-    }
+  try {
+    await bigquery.dataset('your_dataset').table('occurrences').insert(
+      rows.map(row => ({
+        ...row,
+        created_by: context.auth.uid,
+        created_at: new Date().toISOString()
+      }))
+    );
 
-    try {
-        const row = {
-            id: require('uuid').v4(),
-            title: req.body.title,
-            created_by: req.auth.uid,
-            created_at: new Date().toISOString()
-        };
-
-        // For testing, just return success
-        res.status(200).send({ 
-            success: true, 
-            message: 'Song created successfully!',
-            songId: row.id
-        });
-    } catch (error) {
-        console.error('Error:', error);
-        res.status(500).send('Failed to create song: ' + error.message);
-    }
+    return { success: true, message: 'Occurrences submitted successfully' };
+  } catch (error) {
+    throw new functions.https.HttpsError('internal', error.message);
+  }
 });
-
-// Submit occurrences route
-app.post('/submitOccurrences', (req, res) => {
-    const rows = req.body.rows;
-    if (!rows || !Array.isArray(rows)) {
-        return res.status(400).send({ message: "Invalid rows data" });
-    }
-
-    try {
-        // Your logic to handle occurrences goes here
-        res.status(200).send({ message: 'Occurrences submitted successfully' });
-    } catch (error) {
-        console.error('Error:', error);
-        res.status(500).send('Failed to submit occurrences: ' + error.message);
-    }
-});
-
-module.exports = app; // Export the app
