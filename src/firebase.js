@@ -1,7 +1,7 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
-import { getFunctions, connectFunctionsEmulator } from 'firebase/functions';
-import { getFirestore } from 'firebase/firestore'; // Add this import
+import { getFunctions } from 'firebase/functions';
+import { getFirestore } from 'firebase/firestore';
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -12,11 +12,13 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID
 };
 
-const app = initializeApp(firebaseConfig);
+export const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const functions = getFunctions(app);
-export const db = getFirestore(app); // Add this line
+export const db = getFirestore(app);
 
+// Development environment setup
 if (import.meta.env.DEV) {
+  const { connectFunctionsEmulator } = require('firebase/functions');
   connectFunctionsEmulator(functions, 'localhost', 5001);
 }

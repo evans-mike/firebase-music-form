@@ -1,135 +1,69 @@
-import { getFunctions, httpsCallable } from 'firebase/functions';
-import { getApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
+import { httpsCallable } from 'firebase/functions';
+import { auth, functions } from './firebase';
 
-const functions = getFunctions(getApp());
+const handleError = (error, functionName) => {
+  console.error(`Error in ${functionName}:`, {
+    code: error.code,
+    message: error.message,
+    details: error.details,
+    authState: {
+      isAuthenticated: !!auth.currentUser,
+      uid: auth.currentUser?.uid,
+      email: auth.currentUser?.email
+    }
+  });
+
+  if (error.code === 'functions/unauthenticated') {
+    throw new Error('You must be logged in to perform this action');
+  }
+  
+  throw error;
+};
 
 export const createSong = async (title) => {
-  const auth = getAuth();
-  
-  console.log('Auth State:', {
-    isAuthenticated: !!auth.currentUser,
-    uid: auth.currentUser?.uid,
-    emailVerified: auth.currentUser?.emailVerified
-  });
+  if (!auth.currentUser) {
+    throw new Error('You must be logged in to create a song');
+  }
 
   try {
-    console.log('Creating song with title:', title);
-    
     const createSongFunction = httpsCallable(functions, 'createNewSong');
-    console.log('Calling Cloud Function createNewSong...');
-    
     const result = await createSongFunction({ title });
-    console.log('Cloud Function Response:', result);
-    
-    return {
-      data: {
-        message: result.data.message,
-        success: result.data.success,
-        songId: result.data.songId
-      }
-    };
+    return result.data;
   } catch (error) {
-    console.error('Error in createSong:', {
-      code: error.code,
-      message: error.message,
-      details: error.details,
-      stack: error.stack
-    });
-    
-    if (error.code === 'functions/unauthenticated') {
-      console.error('Authentication error - Current auth state:', {
-        user: auth.currentUser ? {
-          uid: auth.currentUser.uid,
-          email: auth.currentUser.email,
-          emailVerified: auth.currentUser.emailVerified
-        } : 'No user'
-      });
-    }
-    
-    throw error;
+    handleError(error, 'createSong');
   }
 };
 
-export const submitOccurrences = async (occurrences) => {
-  const auth = getAuth();
-  
-  console.log('Auth State for submitOccurrences:', {
-    isAuthenticated: !!auth.currentUser,
-    uid: auth.currentUser?.uid,
-    emailVerified: auth.currentUser?.emailVerified
+export const createSongOccurrences = async (occurrences) => {
+  if (!auth.currentUser) {
+    throw new Error('You must be logged in to create song occurrences');
+  }
+
+  // Validate occurrences
+  if (!Array.isArray(occurrences)) {
+    throw new Error('Occurrences must be an array');
+  }
+
+  // Validate each occurrence
+  occurrences.forEach((occurrence, index) => {
+    if (!occurrence.songId || !occurrence.date) {
+      throw new Error(`Invalid occurrence at index ${index}: missing songId or date`);
+    }
+    
+    // Ensure date is in correct format (YYYY-MM-DD)
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(occurrence.date)) {
+      throw new Error(`Invalid date format at index ${index}: ${occurrence.date}. Expected YYYY-MM-DD`);
+    }
   });
 
   try {
-    console.log('Submitting occurrences:', occurrences);
-    
-    // Validate occurrences format
-    if (!Array.isArray(occurrences)) {
-      throw new Error('Occurrences must be an array');
-    }
-
-    // Validate each occurrence
-    occurrences.forEach((occurrence, index) => {
-      if (!occurrence.songId || !occurrence.date) {
-        throw new Error(`Invalid occurrence at index ${index}: missing songId or date`);
-      }
-      
-      // Ensure date is in correct format (YYYY-MM-DD)
-      if (!/^\d{4}-\d{2}-\d{2}$/.test(occurrence.date)) {
-        throw new Error(`Invalid date format at index ${index}: ${occurrence.date}. Expected YYYY-MM-DD`);
-      }
-    });
-    
     const createOccurrencesFunction = httpsCallable(functions, 'createSongOccurrences');
-    console.log('Calling Cloud Function createSongOccurrences...');
-    
     const result = await createOccurrencesFunction({ occurrences });
-    console.log('Cloud Function Response:', result);
-    
-    return {
-      data: {
-        message: result.data.message,
-        success: result.data.success,
-        count: result.data.count,
-        occurrenceIds: result.data.occurrenceIds
-      }
-    };
+    return result.data;
   } catch (error) {
-    console.error('Error in submitOccurrences:', {
-      code: error.code,
-      message: error.message,
-      details: error.details,
-      stack: error.stack,
-      occurrences: occurrences
-    });
-    
-    if (error.code === 'functions/unauthenticated') {
-      console.error('Authentication error - Current auth state:', {
-        user: auth.currentUser ? {
-          uid: auth.currentUser.uid,
-          email: auth.currentUser.email,
-          emailVerified: auth.currentUser.emailVerified
-        } : 'No user'
-      });
-    }
-    
-    throw error;
+    handleError(error, 'createSongOccurrences');
   }
 };
-
-// Example usage:
-/*
-await submitOccurrences([
-  {
-    songId: "song-uuid-1",
-    date: "2025-03-22" // YYYY-MM-DD format
-  },
-  {
-    songId: "song-uuid-2",
-    date: "2025-03-22"
-  }
-]);
-*/
 
 // Helper function to format date to YYYY-MM-DD
 export const formatDate = (date) => {

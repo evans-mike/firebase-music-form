@@ -1,24 +1,30 @@
 import { useState } from 'react';
 import { createSong } from '../api';
+import { useAuth } from '../hooks/useAuth'; // Create this custom hook
 
 export function SongForm() {
   const [title, setTitle] = useState('');
-  const [message, setMessage] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [status, setStatus] = useState({ loading: false, error: null, message: null });
+  const { user } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setMessage('');
-    setLoading(true);
+    
+    if (!user) {
+      setStatus({ error: 'Please log in to create songs' });
+      return;
+    }
+
+    setStatus({ loading: true });
 
     try {
-      const result = await createSong(title);
-      setMessage(result.data.message);
-      setTitle(''); // Clear form on success
+      const result = await createSong(title.trim());
+      setStatus({ message: 'Song created successfully!' });
+      setTitle('');
     } catch (err) {
-      setMessage(`Error: ${err.message}`);
+      setStatus({ error: err.message });
     } finally {
-      setLoading(false);
+      setStatus(prev => ({ ...prev, loading: false }));
     }
   };
 
@@ -32,18 +38,21 @@ export function SongForm() {
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           required
+          disabled={status.loading}
           placeholder="Enter song title"
         />
       </div>
 
-      {message && (
-        <div className={message.includes('Error') ? 'error-message' : 'success-message'}>
-          {message}
-        </div>
+      {status.error && (
+        <div className="error-message">{status.error}</div>
+      )}
+      
+      {status.message && (
+        <div className="success-message">{status.message}</div>
       )}
 
-      <button type="submit" disabled={loading}>
-        {loading ? 'Creating...' : 'Create Song'}
+      <button type="submit" disabled={status.loading || !title.trim()}>
+        {status.loading ? 'Creating...' : 'Create Song'}
       </button>
     </form>
   );
