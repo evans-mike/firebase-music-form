@@ -19,13 +19,17 @@ jobs:
         with:
           node-version: '18'
 
-      # Install pnpm (which handles optional dependencies better)
+      # Install pnpm
       - name: Install pnpm
-        run: npm install -g pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
 
       # Install Frontend Dependencies (root directory)
       - name: Install Frontend Dependencies
-        run: pnpm install --no-optional
+        run: |
+          rm -rf node_modules
+          pnpm install --no-frozen-lockfile
 
       # Install Functions Dependencies
       - name: Install Functions Dependencies
