@@ -7,8 +7,7 @@ require('dotenv').config();
 admin.initializeApp();
 
 const bigqueryConfig = {
-    projectId: process.env.GOOGLE_CLOUD_PROJECT,
-    dataset: process.env.BIGQUERY_DATASET_ID
+    projectId: process.env.GOOGLE_CLOUD_PROJECT 
 };
 
 if (process.env.NODE_ENV !== 'production') {
@@ -16,18 +15,7 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 const bigquery = new BigQuery(bigqueryConfig);
-
-// Test connection endpoint
-exports.testConnection = https.onRequest({
-    cors: true,
-    maxInstances: 10,
-}, (req, res) => {
-    res.status(200).send({
-        message: 'Connection successful!',
-        timestamp: new Date().toISOString(),
-        userId: req.auth?.uid || 'not authenticated'
-    });
-});
+const dataset = bigquery.dataset(process.env.BIGQUERY_DATASET_ID);
 
 // Create new song endpoint
 exports.createNewSong = https.onCall({
@@ -36,7 +24,7 @@ exports.createNewSong = https.onCall({
     memory: "256MiB",
     cors: true,
     enforceAppCheck: false,
-}, (data, context) => {
+}, async (data, context) => {
     if (!context.auth) {
         throw new Error('Must be logged in to create songs');
     }
@@ -53,13 +41,18 @@ exports.createNewSong = https.onCall({
             created_at: new Date().toISOString()
         };
 
+        // Insert into app_songs table
+        const table = dataset.table('app_songs');
+        await table.insert([row]);
+
         return {
             success: true,
             message: 'Song created successfully!',
             songId: row.id
         };
     } catch (error) {
-        throw new Error(error.message);
+        console.error('Error creating song:', error);
+        throw new Error(`Failed to create song: ${error.message}`);
     }
 });
 
@@ -70,16 +63,38 @@ exports.submitOccurrences = https.onCall({
     memory: "256MiB",
     cors: true,
     enforceAppCheck: false,
-}, (data, context) => {
+}, async (data, context) => {
+    if (!context.auth) {
+        throw new Error('Must be logged in to submit occurrences');
+    }
+
     const rows = data.rows;
     if (!rows || !Array.isArray(rows)) {
         throw new Error('Invalid rows data');
     }
 
     try {
-        // Your logic to handle occurrences goes here
-        return { message: 'Occurrences submitted successfully' };
+        // Format the rows for BigQuery
+        const formattedRows = rows.map(row => ({
+            id: require('uuid').v4(),
+            song_id: row.songId,
+            occurrence_date: row.date,
+            created_by: context.auth.uid,
+            created_at: new Date().toISOString(),
+            notes: row.notes || null
+        }));
+
+        // Insert into app_song_occurrences table
+        const table = dataset.table('app_song_occurrences');
+        await table.insert(formattedRows);
+
+        return { 
+            success: true,
+            message: 'Occurrences submitted successfully',
+            count: formattedRows.length
+        };
     } catch (error) {
-        throw new Error(error.message);
+        console.error('Error submitting occurrences:', error);
+        throw new Error(`Failed to submit occurrences: ${error.message}`);
     }
 });
