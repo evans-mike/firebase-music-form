@@ -18,16 +18,19 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: '18'
-          cache: 'npm'
 
-      # Install Dependencies for Frontend (root directory)
-      - name: Install Frontend Dependencies
-        run: npm install
+      # Clean install for Frontend (root directory)
+      - name: Clean Install Frontend Dependencies
+        run: |
+          rm -rf node_modules package-lock.json
+          npm install --no-optional
 
-      # Install Dependencies for Functions
-      - name: Install Functions Dependencies
+      # Clean install for Functions
+      - name: Clean Install Functions Dependencies
         working-directory: ./functions
-        run: npm install
+        run: |
+          rm -rf node_modules package-lock.json
+          npm install --no-optional
 
       # Create Frontend env file
       - name: Create Frontend env file
@@ -45,9 +48,11 @@ jobs:
         run: |
           echo "BIGQUERY_DATASET_ID=${{ secrets.BIGQUERY_DATASET_ID }}" >> .env
 
-      # Build Frontend
+      # Build Frontend with explicit platform
       - name: Build Frontend
-        run: npm run build
+        run: |
+          export ROLLUP_NATIVE_BUILD=false
+          npm run build
 
       # Deploy to Firebase
       - name: Deploy to Firebase
