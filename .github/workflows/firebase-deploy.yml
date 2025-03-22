@@ -1,4 +1,4 @@
-name: Deploy to Firebase
+name: Deploy to Firebase Hosting
 
 on:
   push:
@@ -18,74 +18,27 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: '18'
+          cache: 'npm'
 
-      - name: Install pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: 8.15.4
-          run_install: false
+      - name: Install Dependencies
+        run: npm ci
 
-      - name: Get pnpm store directory
-        shell: bash
-        run: |
-          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+      - name: Build
+        run: npm run build
+        env:
+          VITE_FIREBASE_API_KEY: ${{ secrets.FIREBASE_API_KEY }}
+          VITE_FIREBASE_AUTH_DOMAIN: ${{ secrets.FIREBASE_AUTH_DOMAIN }}
+          VITE_FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+          VITE_FIREBASE_STORAGE_BUCKET: ${{ secrets.FIREBASE_STORAGE_BUCKET }}
+          VITE_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.FIREBASE_MESSAGING_SENDER_ID }}
+          VITE_FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
 
-      - name: Setup pnpm cache
-        uses: actions/cache@v3
-        with:
-          path: ${{ env.STORE_PATH }}
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-store-
-
-      # Clean install Frontend Dependencies
-      - name: Install Frontend Dependencies
-        run: |
-          rm -rf node_modules
-          pnpm install --frozen-lockfile
-
-      # Install Functions Dependencies
-      - name: Install Functions Dependencies
-        working-directory: ./functions
-        run: npm install --no-optional
-
-      # Create Frontend env file
-      - name: Create Frontend env file
-        run: |
-          echo "VITE_FIREBASE_API_KEY=${{ secrets.VITE_FIREBASE_API_KEY }}" >> .env
-          echo "VITE_FIREBASE_AUTH_DOMAIN=${{ secrets.VITE_FIREBASE_AUTH_DOMAIN }}" >> .env
-          echo "VITE_FIREBASE_PROJECT_ID=${{ secrets.VITE_FIREBASE_PROJECT_ID }}" >> .env
-          echo "VITE_FIREBASE_STORAGE_BUCKET=${{ secrets.VITE_FIREBASE_STORAGE_BUCKET }}" >> .env
-          echo "VITE_FIREBASE_MESSAGING_SENDER_ID=${{ secrets.VITE_FIREBASE_MESSAGING_SENDER_ID }}" >> .env
-          echo "VITE_FIREBASE_APP_ID=${{ secrets.VITE_FIREBASE_APP_ID }}" >> .env
-
-      # Create Functions env file
-      - name: Create Functions env file
-        working-directory: ./functions
-        run: |
-          echo "${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_BASE64 }}" | base64 -d > service-account-key.json
-          echo "GOOGLE_APPLICATION_CREDENTIALS=./service-account-key.json" >> .env
-          echo "GOOGLE_CLOUD_PROJECT=${{ secrets.GOOGLE_CLOUD_PROJECT }}" >> .env
-          echo "BIGQUERY_DATASET_ID=${{ secrets.BIGQUERY_DATASET_ID }}" >> .env
-
-      - name: Set credentials permissions
-        working-directory: ./functions
-        run: chmod 600 service-account-key.json
-
-      # Build Frontend
-      - name: Build Frontend
-        run: pnpm build
-
-      # Deploy to Firebase
-      - name: Deploy to Firebase
+      - name: Deploy to Firebase Hosting
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: '${{ secrets.GITHUB_TOKEN }}'
           firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}'
           channelId: live
-          projectId: music-form-4cfd6
-
-      - name: Clean up credentials
-        if: always()
-        working-directory: ./functions
-        run: rm -f service-account-key.json
+          projectId: ${{ secrets.FIREBASE_PROJECT_ID }}
+        env:
+          FIREBASE_CLI_EXPERIMENTS: webframeworks

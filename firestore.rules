@@ -1,14 +1,42 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /songs/{songId} {
-      allow read: if request.auth != null;
-      allow write: if request.auth != null;
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
     }
     
+    function isValidSong() {
+      return request.resource.data.title is string &&
+             request.resource.data.title.size() > 0 &&
+             request.resource.data.createdBy == request.auth.uid;
+    }
+    
+    function isValidOccurrence() {
+      return request.resource.data.songId is string &&
+             request.resource.data.date is string &&
+             request.resource.data.date.matches('^\\d{4}-\\d{2}-\\d{2}$') &&
+             request.resource.data.createdBy == request.auth.uid;
+    }
+
+    // Rules for songs collection
+    match /songs/{songId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && isValidSong();
+      allow update: if isSignedIn() && 
+                      resource.data.createdBy == request.auth.uid;
+      allow delete: if isSignedIn() && 
+                      resource.data.createdBy == request.auth.uid;
+    }
+
+    // Rules for song_occurrences collection
     match /song_occurrences/{occurrenceId} {
-      allow read: if request.auth != null;
-      allow write: if request.auth != null;
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && isValidOccurrence();
+      allow update: if isSignedIn() && 
+                      resource.data.createdBy == request.auth.uid;
+      allow delete: if isSignedIn() && 
+                      resource.data.createdBy == request.auth.uid;
     }
   }
 }

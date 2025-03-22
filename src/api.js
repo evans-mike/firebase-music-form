@@ -1,5 +1,5 @@
-import { httpsCallable } from 'firebase/functions';
-import { auth, functions } from './firebase';
+import { collection, addDoc, writeBatch, serverTimestamp } from 'firebase/firestore';
+import { auth, db } from './firebase';
 
 const handleError = (error, functionName) => {
   console.error(`Error in ${functionName}:`, {
@@ -12,11 +12,6 @@ const handleError = (error, functionName) => {
       email: auth.currentUser?.email
     }
   });
-
-  if (error.code === 'functions/unauthenticated') {
-    throw new Error('You must be logged in to perform this action');
-  }
-  
   throw error;
 };
 
@@ -26,9 +21,22 @@ export const createSong = async (title) => {
   }
 
   try {
-    const createSongFunction = httpsCallable(functions, 'createNewSong');
-    const result = await createSongFunction({ title });
-    return result.data;
+    const songData = {
+      title: title.trim(),
+      createdAt: serverTimestamp(),
+      createdBy: auth.currentUser.uid,
+      updatedAt: serverTimestamp(),
+      updatedBy: auth.currentUser.uid
+    };
+
+    const docRef = await addDoc(collection(db, 'songs'), songData);
+    
+    return {
+      success: true,
+      message: 'Song created successfully!',
+      songId: docRef.id,
+      song: { id: docRef.id, ...songData }
+    };
   } catch (error) {
     handleError(error, 'createSong');
   }
@@ -50,16 +58,42 @@ export const createSongOccurrences = async (occurrences) => {
       throw new Error(`Invalid occurrence at index ${index}: missing songId or date`);
     }
     
-    // Ensure date is in correct format (YYYY-MM-DD)
     if (!/^\d{4}-\d{2}-\d{2}$/.test(occurrence.date)) {
       throw new Error(`Invalid date format at index ${index}: ${occurrence.date}. Expected YYYY-MM-DD`);
     }
   });
 
   try {
-    const createOccurrencesFunction = httpsCallable(functions, 'createSongOccurrences');
-    const result = await createOccurrencesFunction({ occurrences });
-    return result.data;
+    const batch = writeBatch(db);
+    const timestamp = serverTimestamp();
+
+    // Create references for all occurrences
+    const occurrenceRefs = occurrences.map(occurrence => {
+      const occurrenceRef = collection(db, 'song_occurrences');
+      const data = {
+        songId: occurrence.songId,
+        date: occurrence.date,
+        service: occurrence.service || 'AM',
+        closerFlag: occurrence.closer_flag || false,
+        createdAt: timestamp,
+        createdBy: auth.currentUser.uid,
+        updatedAt: timestamp,
+        updatedBy: auth.currentUser.uid
+      };
+      
+      const docRef = addDoc(occurrenceRef, data);
+      return { ref: docRef, data };
+    });
+
+    // Commit the batch
+    await batch.commit();
+
+    return {
+      success: true,
+      message: 'Song occurrences created successfully!',
+      count: occurrenceRefs.length,
+      occurrences: occurrenceRefs.map(ref => ({ id: ref.id, ...ref.data }))
+    };
   } catch (error) {
     handleError(error, 'createSongOccurrences');
   }

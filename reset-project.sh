@@ -1,3 +1,19 @@
+#!/bin/bash
+
+echo "Starting project cleanup and setup..."
+
+# Make scripts executable
+chmod +x cleanup.sh
+chmod +x setup.sh
+
+# Run cleanup
+./cleanup.sh
+
+# Run setup
+./setup.sh
+
+# Update package.json
+cat > package.json << EOF
 {
   "name": "firebase-music-form",
   "private": true,
@@ -23,3 +39,9 @@
     "vite": "^4.x"
   }
 }
+EOF
+
+# Install dependencies
+npm install
+
+echo "Project reset completed!"
