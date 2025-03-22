@@ -1,14 +1,19 @@
 firebase-music-form/
-├── src/                  # React frontend code
+├── src/
 │   ├── main.jsx
 │   ├── App.jsx
 │   └── components/
-├── functions/            # Firebase functions
+├── functions/
 │   ├── index.js
-│   └── package.json
-├── public/              # Static files
-├── index.html           # Entry point for React app
-├── vite.config.js       # Vite configuration
-├── package.json         # Main package.json for frontend
-├── firebase.json        # Firebase configuration
-└── .firebaserc         # Firebase project configuration
+│   ├── package.json
+│   └── package-lock.json
+├── public/
+├── index.html
+├── vite.config.js
+├── package.json           # New root package.json
+├── package-lock.json      # New root package-lock.json
+├── firebase.json
+├── .firebaserc
+└── .github/
+    └── workflows/
+        └── firebase-deploy.yml
