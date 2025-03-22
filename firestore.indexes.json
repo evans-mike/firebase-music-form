@@ -1,0 +1,19 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "song_occurrences",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "song_id",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "occurrence_date",
+          "order": "ASCENDING"
+        }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}
