@@ -19,18 +19,18 @@ jobs:
         with:
           node-version: '18'
 
-      # Clean install for Frontend (root directory)
-      - name: Clean Install Frontend Dependencies
-        run: |
-          rm -rf node_modules package-lock.json
-          npm install --no-optional
+      # Install pnpm (which handles optional dependencies better)
+      - name: Install pnpm
+        run: npm install -g pnpm
 
-      # Clean install for Functions
-      - name: Clean Install Functions Dependencies
+      # Install Frontend Dependencies (root directory)
+      - name: Install Frontend Dependencies
+        run: pnpm install --no-optional
+
+      # Install Functions Dependencies
+      - name: Install Functions Dependencies
         working-directory: ./functions
-        run: |
-          rm -rf node_modules package-lock.json
-          npm install --no-optional
+        run: npm install --no-optional
 
       # Create Frontend env file
       - name: Create Frontend env file
@@ -48,11 +48,9 @@ jobs:
         run: |
           echo "BIGQUERY_DATASET_ID=${{ secrets.BIGQUERY_DATASET_ID }}" >> .env
 
-      # Build Frontend with explicit platform
+      # Build Frontend
       - name: Build Frontend
-        run: |
-          export ROLLUP_NATIVE_BUILD=false
-          npm run build
+        run: pnpm build
 
       # Deploy to Firebase
       - name: Deploy to Firebase

@@ -14,5 +14,10 @@ export default defineConfig({
         },
       },
     },
+    // Add this to disable native builds
+    target: 'esnext',
+    modulePreload: {
+      polyfill: false
+    }
   },
 });
