@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from './firebase';
 import { LoginForm } from './components/LoginForm';
 import { SongForm } from './components/SongForm';
@@ -11,16 +11,17 @@ export function App() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const auth = getAuth();
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (!user) {
-        // Handle unauthenticated state
-        console.error('User not authenticated');
-      }
+      setUser(user);
+      setLoading(false);
     });
-  
-    return () => unsubscribe();
+
+    return unsubscribe;
   }, []);
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div className="app">
