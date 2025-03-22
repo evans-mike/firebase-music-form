@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { submitOccurrences } from '../api';
+import { createSongOccurrences } from '../api';
 
 export function OccurrenceForm() {
   const [occurrences, setOccurrences] = useState([createEmptyOccurrence()]);
@@ -38,7 +38,7 @@ export function OccurrenceForm() {
     setLoading(true);
 
     try {
-      const result = await submitOccurrences(occurrences);
+      const result = await createSongOccurrences(occurrences);
       setMessage(result.data.message);
       setOccurrences([createEmptyOccurrence()]); // Reset form on success
     } catch (err) {
