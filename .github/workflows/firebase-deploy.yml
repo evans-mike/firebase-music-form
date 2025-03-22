@@ -19,17 +19,30 @@ jobs:
         with:
           node-version: '18'
 
-      # Install pnpm
       - name: Install pnpm
         uses: pnpm/action-setup@v2
         with:
-          version: 8
+          version: 8.15.4
+          run_install: false
 
-      # Install Frontend Dependencies (root directory)
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v3
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      # Clean install Frontend Dependencies
       - name: Install Frontend Dependencies
         run: |
           rm -rf node_modules
-          pnpm install --no-frozen-lockfile
+          pnpm install --frozen-lockfile
 
       # Install Functions Dependencies
       - name: Install Functions Dependencies

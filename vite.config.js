@@ -15,9 +15,7 @@ export default defineConfig({
       },
     }
   },
-  resolve: {
-    alias: {
-      'react-dom/client': 'react-dom/client.js'
-    }
+  optimizeDeps: {
+    include: ['react-dom']
   }
 });

@@ -18,8 +18,8 @@
       "uuid": "11.1.0"
     },
     "devDependencies": {
-      "@vitejs/plugin-react": "4.2.1",
-      "vite": "5.0.12"
+      "@vitejs/plugin-react": "4.0.4",
+      "vite": "4.4.9"
     },
     "packageManager": "pnpm@8.15.4"
   }
