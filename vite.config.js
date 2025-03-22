@@ -13,11 +13,11 @@ export default defineConfig({
           vendor: ["react", "react-dom"],
         },
       },
-    },
-    // Add this to disable native builds
-    target: 'esnext',
-    modulePreload: {
-      polyfill: false
     }
   },
+  resolve: {
+    alias: {
+      'react-dom/client': 'react-dom/client.js'
+    }
+  }
 });
