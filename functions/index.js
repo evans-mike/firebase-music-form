@@ -36,9 +36,7 @@ exports.createNewSong = https.onCall({
     try {
         const row = {
             id: require('uuid').v4(),
-            title: data.title,
-            created_by: context.auth.uid,
-            created_at: new Date().toISOString()
+            title: data.title
         };
 
         // Insert into app_songs table
@@ -78,10 +76,7 @@ exports.submitOccurrences = https.onCall({
         const formattedRows = rows.map(row => ({
             id: require('uuid').v4(),
             song_id: row.songId,
-            occurrence_date: row.date,
-            created_by: context.auth.uid,
-            created_at: new Date().toISOString(),
-            notes: row.notes || null
+            occurrence_date: row.date
         }));
 
         // Insert into app_song_occurrences table
