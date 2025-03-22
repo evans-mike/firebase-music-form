@@ -7,7 +7,10 @@
       "dev": "vite",
       "build": "vite build",
       "preview": "vite preview",
-      "deploy": "npm run build && firebase deploy --only hosting"
+      "deploy": "npm run build && firebase deploy",
+      "deploy:hosting": "npm run build && firebase deploy --only hosting",
+      "deploy:functions": "firebase deploy --only functions",
+      "test": "echo \"No tests specified\" && exit 0"
     },
     "dependencies": {
       "firebase": "^10.7.0",

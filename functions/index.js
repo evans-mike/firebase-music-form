@@ -7,7 +7,8 @@ require('dotenv').config();
 admin.initializeApp();
 
 const bigqueryConfig = {
-    projectId: process.env.GOOGLE_CLOUD_PROJECT 
+    projectId: process.env.GOOGLE_CLOUD_PROJECT,
+    dataset: process.env.BIGQUERY_DATASET_ID
 };
 
 if (process.env.NODE_ENV !== 'production') {
