@@ -15,9 +15,8 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const functions = getFunctions(app);
-export const db = getFirestore(app); // Add this export
+export const db = getFirestore(app); // Add this line
 
 if (import.meta.env.DEV) {
-  // Use 'localhost' instead of '127.0.0.1'
   connectFunctionsEmulator(functions, 'localhost', 5001);
 }
