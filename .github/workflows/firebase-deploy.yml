@@ -63,8 +63,14 @@ jobs:
       - name: Create Functions env file
         working-directory: ./functions
         run: |
+          echo "${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_BASE64 }}" | base64 -d > service-account-key.json
+          echo "GOOGLE_APPLICATION_CREDENTIALS=./service-account-key.json" >> .env
           echo "GOOGLE_CLOUD_PROJECT=${{ secrets.GOOGLE_CLOUD_PROJECT }}" >> .env
           echo "BIGQUERY_DATASET_ID=${{ secrets.BIGQUERY_DATASET_ID }}" >> .env
+
+      - name: Set credentials permissions
+        working-directory: ./functions
+        run: chmod 600 service-account-key.json
 
       # Build Frontend
       - name: Build Frontend
@@ -78,3 +84,8 @@ jobs:
           firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}'
           channelId: live
           projectId: music-form-4cfd6
+
+      - name: Clean up credentials
+        if: always()
+        working-directory: ./functions
+        run: rm -f service-account-key.json

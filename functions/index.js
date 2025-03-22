@@ -2,18 +2,27 @@ const { https } = require('firebase-functions/v2');
 const admin = require('firebase-admin');
 const { BigQuery } = require('@google-cloud/bigquery');
 const { v4: uuidv4 } = require('uuid');
+const path = require('path');
 require('dotenv').config();
 
 // Initialize Firebase Admin
 admin.initializeApp();
 
-// Initialize BigQuery with project from environment variable
-const bigquery = new BigQuery({
-    projectId: process.env.GOOGLE_CLOUD_PROJECT
-});
+// Initialize BigQuery with explicit credentials
+const bigqueryConfig = {
+    projectId: process.env.GOOGLE_CLOUD_PROJECT,
+};
 
-// Get dataset reference
+// Only use credentials file in development
+if (process.env.NODE_ENV !== 'production') {
+    const credentialsPath = path.resolve(__dirname, process.env.GOOGLE_APPLICATION_CREDENTIALS);
+    console.log('Loading BigQuery credentials from:', credentialsPath);
+    bigqueryConfig.keyFilename = credentialsPath;
+}
+
+const bigquery = new BigQuery(bigqueryConfig);
 const dataset = bigquery.dataset(process.env.BIGQUERY_DATASET_ID);
+
 
 // Utility function to log errors
 const logError = (functionName, error, context = {}) => {
