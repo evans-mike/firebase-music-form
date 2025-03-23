@@ -1,5 +1,6 @@
-import { collection, getDocs } from 'firebase/firestore';
+import { collection, getDocs, doc, setDoc, writeBatch, serverTimestamp } from 'firebase/firestore';
 import { auth, db } from './firebase';
+import { v4 as uuidv4 } from 'uuid'; // Import UUID library
 
 const handleError = (error, functionName) => {
   console.error(`Error in ${functionName}:`, {
@@ -21,6 +22,7 @@ export const createSong = async (title) => {
   }
 
   try {
+    const songId = uuidv4(); // Generate a unique ID for the song
     const songData = {
       title: title.trim(),
       createdAt: serverTimestamp(),
@@ -29,13 +31,13 @@ export const createSong = async (title) => {
       updatedBy: auth.currentUser.uid
     };
 
-    const docRef = await addDoc(collection(db, 'songs'), songData);
+    await setDoc(doc(db, 'songs', songId), songData); // Use setDoc with a defined ID
     
     return {
       success: true,
       message: 'Song created successfully!',
-      songId: docRef.id,
-      song: { id: docRef.id, ...songData }
+      songId: songId,
+      song: { id: songId, ...songData }
     };
   } catch (error) {
     handleError(error, 'createSong');
@@ -106,6 +108,17 @@ export const getSongs = async () => {
 
   try {
     const querySnapshot = await getDocs(collection(db, 'songs'));
+    if (querySnapshot.empty) {
+      // If the collection doesn't exist, create it with a default document
+      const defaultSong = {
+        title: 'Default Song',
+        createdAt: serverTimestamp(),
+        createdBy: auth.currentUser.uid,
+        updatedAt: serverTimestamp(),
+        updatedBy: auth.currentUser.uid
+      };
+      await addDoc(collection(db, 'songs'), defaultSong);
+    }
     const songs = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     return songs;
   } catch (error) {

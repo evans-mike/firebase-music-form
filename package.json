@@ -10,11 +10,12 @@
     "deploy": "npm run build && firebase deploy --only hosting"
   },
   "dependencies": {
-    "firebase": "^10.x",
-    "@firebase/firestore": "^4.x",
     "@firebase/auth": "^1.x",
+    "@firebase/firestore": "^4.x",
+    "firebase": "^10.x",
     "react": "^18.x",
-    "react-dom": "^18.x"
+    "react-dom": "^18.x",
+    "uuid": "^11.1.0"
   },
   "devDependencies": {
     "@types/react": "^18.x",
