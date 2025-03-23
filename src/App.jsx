@@ -23,16 +23,13 @@ export function App() {
       } : 'No user');
       
       setUser(user);
+      handleGetSongs();
       setLoading(false);
     });
 
     // Cleanup subscription
     return () => unsubscribe();
   }, []);
-
-  useEffect(() => {
-    handleGetSongs();
-  }, []); // Fetch songs on page load
 
   const handleLoginSuccess = () => {
     console.log('Login successful');
