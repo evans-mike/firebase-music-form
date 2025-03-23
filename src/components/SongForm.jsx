@@ -20,10 +20,10 @@ export function SongForm({ user, onSongCreated }) {
     try {
       await createSong({
         title,
-        attributes: attributes.split(',').map(attr => attr.trim()),
-        author_group: authorGroup,
-        authors: authors.split(',').map(author => author.trim()),
-        year: parseInt(year, 10),
+        attributes: (attributes || '').split(',').map(attr => attr.trim()),
+        author_group: authorGroup || null,
+        authors: (authors || '').split(',').map(author => author.trim()),
+        year: year ? parseInt(year, 10) : null,
         createdAt: new Date(),
         createdBy: user.email,
         updatedAt: new Date(),
