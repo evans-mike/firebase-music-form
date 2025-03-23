@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { createSong } from '../api';
 
-export function SongForm() {
+export function SongForm({ user, onSongCreated }) {
   const [title, setTitle] = useState('');
   const [attributes, setAttributes] = useState('');
   const [authorGroup, setAuthorGroup] = useState('');
@@ -9,28 +9,44 @@ export function SongForm() {
   const [year, setYear] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setSuccess('');
+    setLoading(true);
 
     try {
-      const result = await createSong(title, attributes, authorGroup, authors, year);
-      setSuccess(result.message);
+      await createSong({
+        title,
+        attributes: attributes.split(',').map(attr => attr.trim()),
+        author_group: authorGroup,
+        authors: authors.split(',').map(author => author.trim()),
+        year: parseInt(year, 10),
+        createdAt: new Date(),
+        createdBy: user.email,
+        updatedAt: new Date(),
+        updatedBy: user.email
+      });
+      setSuccess('Song created successfully!');
       setTitle('');
       setAttributes('');
       setAuthorGroup('');
       setAuthors('');
       setYear('');
+      onSongCreated?.(); // Call onSongCreated after a new song is created
     } catch (err) {
       console.error('Error creating song:', err);
-      setError(err.message);
+      setError('Failed to create song');
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <div className="song-form-container">
+      <h1>Create New Song</h1>
       <form onSubmit={handleSubmit} className="song-form">
         <div className="form-group">
           <label htmlFor="title">Title</label>
@@ -64,7 +80,7 @@ export function SongForm() {
         </div>
 
         <div className="form-group">
-          <label htmlFor="authors">Authors</label>
+          <label htmlFor="authors">Authors (comma-separated)</label>
           <input
             type="text"
             id="authors"
@@ -86,7 +102,9 @@ export function SongForm() {
         {error && <div className="error-message">{error}</div>}
         {success && <div className="success-message">{success}</div>}
 
-        <button type="submit">Create Song</button>
+        <button type="submit" disabled={loading}>
+          {loading ? 'Creating...' : 'Create Song'}
+        </button>
       </form>
     </div>
   );

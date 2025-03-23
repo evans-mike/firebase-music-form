@@ -30,6 +30,10 @@ export function App() {
     return () => unsubscribe();
   }, []);
 
+  useEffect(() => {
+    handleGetSongs();
+  }, []); // Fetch songs on page load
+
   const handleLoginSuccess = () => {
     console.log('Login successful');
   };
@@ -72,7 +76,7 @@ export function App() {
             <h2 onClick={() => setIsSongFormCollapsed(!isSongFormCollapsed)}>
               Create New Song {isSongFormCollapsed ? '▼' : '▲'}
             </h2>
-            {!isSongFormCollapsed && <SongForm user={user} />}
+            {!isSongFormCollapsed && <SongForm user={user} onSongCreated={handleGetSongs} />}
           </section>
 
           <section className="form-section">
