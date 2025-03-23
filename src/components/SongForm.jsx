@@ -31,7 +31,6 @@ export function SongForm() {
 
   return (
     <div className="song-form-container">
-      <h1>Create New Song</h1>
       <form onSubmit={handleSubmit} className="song-form">
         <div className="form-group">
           <label htmlFor="title">Title</label>
