@@ -3,15 +3,13 @@ import { createSongOccurrences, getSongTitles, formatDate, validateOccurrence } 
 import { auth } from '../firebase';
 
 export function OccurrenceForm() {
-  const [date, setDate] = useState('');
-  const [service, setService] = useState('AM');
-  const [closerFlag, setCloserFlag] = useState(false);
-  const [songId, setSongId] = useState('');
   const [songs, setSongs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [occurrences, setOccurrences] = useState([{ id: Date.now(), songId: '', date: '', service: 'AM', closerFlag: false }]);
+  const [occurrences, setOccurrences] = useState([
+    { id: Date.now(), songId: '', date: '', service: 'AM', closerFlag: false }
+  ]);
 
   useEffect(() => {
     const fetchSongs = async () => {
@@ -30,7 +28,11 @@ export function OccurrenceForm() {
   }, []);
 
   const handleAddRow = () => {
-    setOccurrences([...occurrences, { id: Date.now(), songId: '', date: '', service: 'AM', closerFlag: false }]);
+    const firstRow = occurrences[0];
+    setOccurrences([
+      ...occurrences,
+      { id: Date.now(), songId: '', date: firstRow.date, service: firstRow.service, closerFlag: false }
+    ]);
   };
 
   const handleRemoveRow = (id) => {
