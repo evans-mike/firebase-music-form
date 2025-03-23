@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
-import { createSongOccurrences, formatDate, validateOccurrence } from '../api';
+import { createSongOccurrences, getSongTitles, formatDate, validateOccurrence } from '../api';
 import { auth } from '../firebase';
 
-export function OccurrenceForm({ songs }) {
+export function OccurrenceForm() {
+  const [songs, setSongs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -11,8 +12,20 @@ export function OccurrenceForm({ songs }) {
   ]);
 
   useEffect(() => {
-    setLoading(false);
-  }, [songs]);
+    const fetchSongs = async () => {
+      try {
+        const songsList = await getSongTitles();
+        setSongs(songsList);
+        setLoading(false);
+      } catch (error) {
+        console.error('Error fetching song titles:', error);
+        setError('Failed to load song titles');
+        setLoading(false);
+      }
+    };
+
+    fetchSongs();
+  }, []);
 
   const handleAddRow = () => {
     const firstRow = occurrences[0];
@@ -100,7 +113,7 @@ export function OccurrenceForm({ songs }) {
               </select>
             </div>
 
-            <div className="form-group closer-flag">
+            <div className="form-group">
               <label>
                 <input
                   type="checkbox"
@@ -112,7 +125,7 @@ export function OccurrenceForm({ songs }) {
             </div>
 
             {index > 0 && (
-              <button type="button" className="remove-row" onClick={() => handleRemoveRow(occurrence.id)}>Remove</button>
+              <button type="button" onClick={() => handleRemoveRow(occurrence.id)}>Remove</button>
             )}
           </div>
         ))}
