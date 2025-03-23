@@ -23,13 +23,16 @@ export function App() {
       } : 'No user');
       
       setUser(user);
-      handleGetSongs();
       setLoading(false);
     });
 
     // Cleanup subscription
     return () => unsubscribe();
   }, []);
+
+  useEffect(() => {
+    handleGetSongs();
+  }, []); // Fetch songs on page load
 
   const handleLoginSuccess = () => {
     console.log('Login successful');
@@ -79,20 +82,6 @@ export function App() {
           <section className="form-section">
             <h2>Song Occurrences</h2>
             <OccurrenceForm user={user} songs={songs} />
-          </section>
-
-          <section className="form-section">
-            <h2>Get Songs</h2>
-            <button onClick={handleGetSongs} disabled={songsLoading}>
-              {songsLoading ? 'Loading Songs...' : 'Get Songs'}
-            </button>
-            {songs.length > 0 && (
-              <ul>
-                {songs.map((song) => (
-                  <li key={song.id}>{song.title}</li>
-                ))}
-              </ul>
-            )}
           </section>
         </div>
       )}
