@@ -24,10 +24,10 @@ export const createSong = async (title, attributes = '', authorGroup = '', autho
   try {
     const songId = uuidv4(); // Generate a unique ID for the song
     const songData = {
-      title: title.trim(),
-      attributes: attributes ? attributes.split(',').map(attr => attr.trim()) : [],
-      author_group: authorGroup.trim() || "",
-      authors: authors.trim() || "",
+      title: title,
+      attributes: attributes ? attributes.split(',').map(attr => attr) : [],
+      author_group: authorGroup || "",
+      authors: authors || "",
       year: year ? parseInt(year, 10) : "",
       createdAt: serverTimestamp(),
       createdBy: auth.currentUser.uid,

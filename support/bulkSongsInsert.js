@@ -33,9 +33,9 @@ fs.createReadStream(csvFilePath)
     // Map CSV data to Firestore document structure
     const formattedRow = {
       title: row.title,
-      attributes: row.attributes ? row.attributes.split(',').map(attr => attr.trim()) : [],
+      attributes: row.attributes ? row.attributes.split(',').map(attr => attr) : [],
       author_group: row.author_group || null,
-      authors: row.authors ? row.authors.split(',').map(author => author.trim()) : [],
+      authors: row.authors ? row.authors.split(',').map(author => author) : [],
       year: row.year ? parseInt(row.year, 10) : null,
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
       createdBy: 'bulk_insert_script', // You can customize this field as needed
