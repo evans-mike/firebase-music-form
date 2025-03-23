@@ -38,7 +38,9 @@ export function App() {
     setSongsLoading(true);
     try {
       const songsList = await getSongs();
-      setSongs(songsList);
+      // Sort songs alphabetically by title
+      const sortedSongs = songsList.sort((a, b) => a.title.localeCompare(b.title));
+      setSongs(sortedSongs);
     } catch (error) {
       console.error('Error fetching songs:', error);
     } finally {
@@ -75,7 +77,7 @@ export function App() {
 
           <section className="form-section">
             <h2>Song Occurrences</h2>
-            <OccurrenceForm user={user} />
+            <OccurrenceForm user={user} songs={songs} />
           </section>
 
           <section className="form-section">
