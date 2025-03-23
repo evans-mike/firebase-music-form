@@ -65,7 +65,7 @@ export function SongForm({ user, onSongCreated }) {
             type="text"
             id="attributes"
             value={attributes}
-            placeholder=""
+            defaultValue=""
             onChange={(e) => setAttributes(e.target.value)}
           />
         </div>
@@ -76,7 +76,7 @@ export function SongForm({ user, onSongCreated }) {
             type="text"
             id="authorGroup"
             value={authorGroup}
-            placeholder=""
+            defaultValue=""
             onChange={(e) => setAuthorGroup(e.target.value)}
           />
         </div>
@@ -87,7 +87,7 @@ export function SongForm({ user, onSongCreated }) {
             type="text"
             id="authors"
             value={authors}
-            placeholder=""
+            defaultValue=""
             onChange={(e) => setAuthors(e.target.value)}
           />
         </div>
@@ -98,7 +98,7 @@ export function SongForm({ user, onSongCreated }) {
             type="number"
             id="year"
             value={year}
-            placeholder="9999"
+            defaultValue="9999"
             onChange={(e) => setYear(e.target.value)}
           />
         </div>
