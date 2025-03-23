@@ -12,6 +12,7 @@ export function App() {
   const [loading, setLoading] = useState(true);
   const [songs, setSongs] = useState([]); // State for storing songs
   const [songsLoading, setSongsLoading] = useState(false); // State for loading songs
+  const [isSongFormCollapsed, setIsSongFormCollapsed] = useState(true); // State for collapsing the Song Form
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -66,8 +67,10 @@ export function App() {
           </header>
 
           <section className="form-section">
-            <h2>Create New Song</h2>
-            <SongForm user={user} />
+            <h2 onClick={() => setIsSongFormCollapsed(!isSongFormCollapsed)}>
+              Create New Song {isSongFormCollapsed ? '▼' : '▲'}
+            </h2>
+            {!isSongFormCollapsed && <SongForm user={user} />}
           </section>
 
           <section className="form-section">
