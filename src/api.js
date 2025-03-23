@@ -1,4 +1,4 @@
-import { collection, getDocs, doc, setDoc, writeBatch, serverTimestamp } from 'firebase/firestore';
+import { collection, getDocs, addDoc, doc, setDoc, writeBatch, serverTimestamp } from 'firebase/firestore';
 import { auth, db } from './firebase';
 import { v4 as uuidv4 } from 'uuid'; // Import UUID library
 
