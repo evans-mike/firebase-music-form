@@ -1,4 +1,4 @@
-import { collection, getDocs, addDoc, doc, setDoc, writeBatch, serverTimestamp } from 'firebase/firestore';
+import { collection, getDocs, doc, setDoc, writeBatch, serverTimestamp } from 'firebase/firestore';
 import { auth, db } from './firebase';
 import { v4 as uuidv4 } from 'uuid'; // Import UUID library
 
@@ -16,7 +16,7 @@ const handleError = (error, functionName) => {
   throw error;
 };
 
-export const createSong = async (title) => {
+export const createSong = async (title, attributes = '', authorGroup = '', authors = '', year = null) => {
   if (!auth.currentUser) {
     throw new Error('You must be logged in to create a song');
   }
@@ -25,6 +25,10 @@ export const createSong = async (title) => {
     const songId = uuidv4(); // Generate a unique ID for the song
     const songData = {
       title: title.trim(),
+      attributes: attributes ? attributes.split(',').map(attr => attr.trim()) : [],
+      author_group: authorGroup.trim() || null,
+      authors: authors.trim() || null,
+      year: year ? parseInt(year, 10) : null,
       createdAt: serverTimestamp(),
       createdBy: auth.currentUser.uid,
       updatedAt: serverTimestamp(),

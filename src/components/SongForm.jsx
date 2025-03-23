@@ -1,59 +1,94 @@
 import { useState } from 'react';
 import { createSong } from '../api';
-import { useAuth } from '../hooks/useAuth'; // Create this custom hook
 
 export function SongForm() {
   const [title, setTitle] = useState('');
-  const [status, setStatus] = useState({ loading: false, error: null, message: null });
-  const { user } = useAuth();
+  const [attributes, setAttributes] = useState('');
+  const [authorGroup, setAuthorGroup] = useState('');
+  const [authors, setAuthors] = useState('');
+  const [year, setYear] = useState('');
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    if (!user) {
-      setStatus({ error: 'Please log in to create songs' });
-      return;
-    }
-
-    setStatus({ loading: true });
+    setError('');
+    setSuccess('');
 
     try {
-      const result = await createSong(title.trim());
-      setStatus({ message: 'Song created successfully!' });
+      const result = await createSong(title, attributes, authorGroup, authors, year);
+      setSuccess(result.message);
       setTitle('');
+      setAttributes('');
+      setAuthorGroup('');
+      setAuthors('');
+      setYear('');
     } catch (err) {
-      setStatus({ error: err.message });
-    } finally {
-      setStatus(prev => ({ ...prev, loading: false }));
+      console.error('Error creating song:', err);
+      setError(err.message);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="song-form">
-      <div className="form-group">
-        <label htmlFor="song-title">Song Title</label>
-        <input
-          type="text"
-          id="song-title"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          required
-          disabled={status.loading}
-          placeholder="Enter song title"
-        />
-      </div>
+    <div className="song-form-container">
+      <h1>Create New Song</h1>
+      <form onSubmit={handleSubmit} className="song-form">
+        <div className="form-group">
+          <label htmlFor="title">Title</label>
+          <input
+            type="text"
+            id="title"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            required
+          />
+        </div>
 
-      {status.error && (
-        <div className="error-message">{status.error}</div>
-      )}
-      
-      {status.message && (
-        <div className="success-message">{status.message}</div>
-      )}
+        <div className="form-group">
+          <label htmlFor="attributes">Attributes (comma-separated)</label>
+          <input
+            type="text"
+            id="attributes"
+            value={attributes}
+            onChange={(e) => setAttributes(e.target.value)}
+          />
+        </div>
 
-      <button type="submit" disabled={status.loading || !title.trim()}>
-        {status.loading ? 'Creating...' : 'Create Song'}
-      </button>
-    </form>
+        <div className="form-group">
+          <label htmlFor="authorGroup">Author Group</label>
+          <input
+            type="text"
+            id="authorGroup"
+            value={authorGroup}
+            onChange={(e) => setAuthorGroup(e.target.value)}
+          />
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="authors">Authors</label>
+          <input
+            type="text"
+            id="authors"
+            value={authors}
+            onChange={(e) => setAuthors(e.target.value)}
+          />
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="year">Year</label>
+          <input
+            type="number"
+            id="year"
+            value={year}
+            onChange={(e) => setYear(e.target.value)}
+          />
+        </div>
+
+        {error && <div className="error-message">{error}</div>}
+        {success && <div className="success-message">{success}</div>}
+
+        <button type="submit">Create Song</button>
+      </form>
+    </div>
   );
 }
