@@ -1,4 +1,4 @@
-import { collection, addDoc, writeBatch, serverTimestamp } from 'firebase/firestore';
+import { collection, getDocs } from 'firebase/firestore';
 import { auth, db } from './firebase';
 
 const handleError = (error, functionName) => {
@@ -96,6 +96,20 @@ export const createSongOccurrences = async (occurrences) => {
     };
   } catch (error) {
     handleError(error, 'createSongOccurrences');
+  }
+};
+
+export const getSongs = async () => {
+  if (!auth.currentUser) {
+    throw new Error('You must be logged in to get songs');
+  }
+
+  try {
+    const querySnapshot = await getDocs(collection(db, 'songs'));
+    const songs = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    return songs;
+  } catch (error) {
+    handleError(error, 'getSongs');
   }
 };
 
