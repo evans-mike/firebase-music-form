@@ -1,119 +1,121 @@
-import { useState } from 'react';
-import { createSongOccurrences } from '../api';
+import { useState, useEffect } from 'react';
+import { createSongOccurrences, getSongTitles, formatDate, validateOccurrence } from '../api';
+import { auth } from '../firebase';
 
 export function OccurrenceForm() {
-  const [occurrences, setOccurrences] = useState([createEmptyOccurrence()]);
-  const [message, setMessage] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [date, setDate] = useState('');
+  const [service, setService] = useState('AM');
+  const [closerFlag, setCloserFlag] = useState(false);
+  const [songId, setSongId] = useState('');
+  const [songs, setSongs] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
 
-  function createEmptyOccurrence() {
-    return {
-      date: '',
-      title: '',
-      closer_flag: false,
-      service: 'AM'
+  useEffect(() => {
+    const fetchSongs = async () => {
+      try {
+        const songsList = await getSongTitles();
+        setSongs(songsList);
+        setLoading(false);
+      } catch (error) {
+        console.error('Error fetching song titles:', error);
+        setError('Failed to load song titles');
+        setLoading(false);
+      }
     };
-  }
 
-  const addRow = () => {
-    setOccurrences([...occurrences, createEmptyOccurrence()]);
-  };
-
-  const removeRow = (index) => {
-    setOccurrences(occurrences.filter((_, i) => i !== index));
-  };
-
-  const updateOccurrence = (index, field, value) => {
-    const updatedOccurrences = [...occurrences];
-    updatedOccurrences[index] = {
-      ...updatedOccurrences[index],
-      [field]: value
-    };
-    setOccurrences(updatedOccurrences);
-  };
+    fetchSongs();
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setMessage('');
-    setLoading(true);
+    setError('');
+    setSuccess('');
 
     try {
-      const result = await createSongOccurrences(occurrences);
-      setMessage(result.data.message);
-      setOccurrences([createEmptyOccurrence()]); // Reset form on success
+      validateOccurrence({ songId, date });
+      const occurrence = {
+        songId,
+        date: formatDate(new Date(date)),
+        service,
+        closer_flag: closerFlag
+      };
+      await createSongOccurrences([occurrence]);
+      setSuccess('Song occurrence created successfully!');
+      setDate('');
+      setService('AM');
+      setCloserFlag(false);
+      setSongId('');
     } catch (err) {
-      setMessage(`Error: ${err.message}`);
-    } finally {
-      setLoading(false);
+      console.error('Error creating song occurrence:', err);
+      setError(err.message);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="occurrence-form">
-      <div className="occurrences-container">
-        {occurrences.map((occurrence, index) => (
-          <div key={index} className="occurrence-row">
-            <input
-              type="date"
-              value={occurrence.date}
-              onChange={(e) => updateOccurrence(index, 'date', e.target.value)}
-              required
-            />
-            
-            <input
-              type="text"
-              value={occurrence.title}
-              onChange={(e) => updateOccurrence(index, 'title', e.target.value)}
-              placeholder="Song Title"
-              required
-            />
-            
-            <label className="closer-flag">
-              <input
-                type="checkbox"
-                checked={occurrence.closer_flag}
-                onChange={(e) => updateOccurrence(index, 'closer_flag', e.target.checked)}
-              />
-              Closer
-            </label>
-            
+    <div className="occurrence-form-container">
+      <h1>Create Song Occurrence</h1>
+      <form onSubmit={handleSubmit} className="occurrence-form">
+        <div className="form-group">
+          <label htmlFor="songId">Song Title</label>
+          {loading ? (
+            <p>Loading song titles...</p>
+          ) : (
             <select
-              value={occurrence.service}
-              onChange={(e) => updateOccurrence(index, 'service', e.target.value)}
+              id="songId"
+              value={songId}
+              onChange={(e) => setSongId(e.target.value)}
               required
             >
-              <option value="AM">AM</option>
-              <option value="PM">PM</option>
+              <option value="" disabled>Select a song</option>
+              {songs.map((song) => (
+                <option key={song.id} value={song.id}>{song.title}</option>
+              ))}
             </select>
-
-            {occurrences.length > 1 && (
-              <button 
-                type="button" 
-                onClick={() => removeRow(index)}
-                className="remove-row"
-              >
-                Remove
-              </button>
-            )}
-          </div>
-        ))}
-      </div>
-
-      <div className="form-actions">
-        <button type="button" onClick={addRow}>
-          Add Row
-        </button>
-        
-        <button type="submit" disabled={loading}>
-          {loading ? 'Submitting...' : 'Submit Occurrences'}
-        </button>
-      </div>
-
-      {message && (
-        <div className={message.includes('Error') ? 'error-message' : 'success-message'}>
-          {message}
+          )}
         </div>
-      )}
-    </form>
+
+        <div className="form-group">
+          <label htmlFor="date">Date</label>
+          <input
+            type="date"
+            id="date"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+            required
+          />
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="service">Service</label>
+          <select
+            id="service"
+            value={service}
+            onChange={(e) => setService(e.target.value)}
+            required
+          >
+            <option value="AM">AM</option>
+            <option value="PM">PM</option>
+          </select>
+        </div>
+
+        <div className="form-group">
+          <label>
+            <input
+              type="checkbox"
+              checked={closerFlag}
+              onChange={(e) => setCloserFlag(e.target.checked)}
+            />
+            Closer Flag
+          </label>
+        </div>
+
+        {error && <div className="error-message">{error}</div>}
+        {success && <div className="success-message">{success}</div>}
+
+        <button type="submit">Create Occurrence</button>
+      </form>
+    </div>
   );
 }

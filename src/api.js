@@ -126,6 +126,20 @@ export const getSongs = async () => {
   }
 };
 
+export const getSongTitles = async () => {
+  if (!auth.currentUser) {
+    throw new Error('You must be logged in to get song titles');
+  }
+
+  try {
+    const querySnapshot = await getDocs(collection(db, 'songs'));
+    const songs = querySnapshot.docs.map(doc => ({ id: doc.id, title: doc.data().title }));
+    return songs;
+  } catch (error) {
+    handleError(error, 'getSongTitles');
+  }
+};
+
 // Helper function to format date to YYYY-MM-DD
 export const formatDate = (date) => {
   return date.toISOString().split('T')[0];
