@@ -1,4 +1,4 @@
-import { collection, getDocs, addDoc, doc, setDoc, writeBatch, serverTimestamp } from 'firebase/firestore';
+import { collection, getDocs, doc, setDoc, writeBatch, serverTimestamp } from 'firebase/firestore';
 import { auth, db } from './firebase';
 import { v4 as uuidv4 } from 'uuid'; // Import UUID library
 
@@ -24,11 +24,11 @@ export const createSong = async (title, attributes = '', authorGroup = '', autho
   try {
     const songId = uuidv4(); // Generate a unique ID for the song
     const songData = {
-      title: title,
-      attributes: attributes ? attributes.split(',').map(attr => attr) : [],
-      author_group: authorGroup || "",
-      authors: authors || "",
-      year: year ? parseInt(year, 10) : "",
+      title: title.trim(),
+      attributes: attributes ? attributes.split(',').map(attr => attr.trim()) : [],
+      author_group: authorGroup.trim() || null,
+      authors: authors.trim() || null,
+      year: year ? parseInt(year, 10) : null,
       createdAt: serverTimestamp(),
       createdBy: auth.currentUser.uid,
       updatedAt: serverTimestamp(),

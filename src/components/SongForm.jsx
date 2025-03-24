@@ -20,10 +20,10 @@ export function SongForm({ user, onSongCreated }) {
     try {
       await createSong({
         title,
-        attributes: (attributes || '').split(',').map(attr => attr.trim()),
-        author_group: authorGroup || null,
-        authors: (authors || '').split(',').map(author => author.trim()),
-        year: year ? parseInt(year, 10) : null,
+        attributes: attributes.split(',').map(attr => attr.trim()),
+        author_group: authorGroup,
+        authors: authors.split(',').map(author => author.trim()),
+        year: parseInt(year, 10),
         createdAt: new Date(),
         createdBy: user.email,
         updatedAt: new Date(),
@@ -65,7 +65,6 @@ export function SongForm({ user, onSongCreated }) {
             type="text"
             id="attributes"
             value={attributes}
-            defaultValue=""
             onChange={(e) => setAttributes(e.target.value)}
           />
         </div>
@@ -76,7 +75,6 @@ export function SongForm({ user, onSongCreated }) {
             type="text"
             id="authorGroup"
             value={authorGroup}
-            defaultValue=""
             onChange={(e) => setAuthorGroup(e.target.value)}
           />
         </div>
@@ -87,7 +85,6 @@ export function SongForm({ user, onSongCreated }) {
             type="text"
             id="authors"
             value={authors}
-            defaultValue=""
             onChange={(e) => setAuthors(e.target.value)}
           />
         </div>
@@ -98,7 +95,6 @@ export function SongForm({ user, onSongCreated }) {
             type="number"
             id="year"
             value={year}
-            defaultValue="9999"
             onChange={(e) => setYear(e.target.value)}
           />
         </div>

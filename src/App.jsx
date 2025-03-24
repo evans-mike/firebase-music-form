@@ -23,8 +23,8 @@ export function App() {
       } : 'No user');
       
       setUser(user);
-      setLoading(false);
       handleGetSongs();
+      setLoading(false);
     });
 
     // Cleanup subscription
@@ -40,11 +40,7 @@ export function App() {
     try {
       const songsList = await getSongs();
       // Sort songs alphabetically by title
-      const sortedSongs = songsList.sort((a, b) => {
-        const titleA = a.title || ''; // Default to empty string if title is missing
-        const titleB = b.title || ''; // Default to empty string if title is missing
-        return titleA.localeCompare(titleB);
-      });
+      const sortedSongs = songsList.sort((a, b) => a.title.localeCompare(b.title));
       setSongs(sortedSongs);
     } catch (error) {
       console.error('Error fetching songs:', error);
@@ -83,6 +79,20 @@ export function App() {
           <section className="form-section">
             <h2>Song Occurrences</h2>
             <OccurrenceForm user={user} songs={songs} />
+          </section>
+
+          <section className="form-section">
+            <h2>Get Songs</h2>
+            <button onClick={handleGetSongs} disabled={songsLoading}>
+              {songsLoading ? 'Loading Songs...' : 'Get Songs'}
+            </button>
+            {songs.length > 0 && (
+              <ul>
+                {songs.map((song) => (
+                  <li key={song.id}>{song.title}</li>
+                ))}
+              </ul>
+            )}
           </section>
         </div>
       )}
