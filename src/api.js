@@ -1,20 +1,4 @@
-import { collection, getDocs, doc, setDoc, writeBatch, serverTimestamp } from 'firebase/firestore';
-import { auth, db } from './firebase';
-import { v4 as uuidv4 } from 'uuid'; // Import UUID library
-
-const handleError = (error, functionName) => {
-  console.error(`Error in ${functionName}:`, {
-    code: error.code,
-    message: error.message,
-    details: error.details,
-    authState: {
-      isAuthenticated: !!auth.currentUser,
-      uid: auth.currentUser?.uid,
-      email: auth.currentUser?.email
-    }
-  });
-  throw error;
-};
+import { db } from './firebase';
 
 // Create a new song
 export const createSong = async (songData) => {
@@ -24,7 +8,9 @@ export const createSong = async (songData) => {
 
 // Get all songs
 export const getSongs = async () => {
+  console.log('Fetching songs from the database');
   const snapshot = await db.collection('songs').get();
+  console.log('Songs fetched:', snapshot.docs.length);
   return snapshot.docs.map(doc => ({
     id: doc.id,
     ...doc.data()
