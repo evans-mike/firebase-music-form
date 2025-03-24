@@ -40,8 +40,9 @@ export function App() {
     try {
       const songsList = await getSongs();
       // Sort songs alphabetically by title
-      const sortedSongs = songsList.sort((a, b) => a.title.localeCompare(b.title));
-      setSongs(sortedSongs);
+      // const sortedSongs = songsList.sort((a, b) => a.title.localeCompare(b.title));
+      // setSongs(sortedSongs);
+      setSongs(songsList);
     } catch (error) {
       console.error('Error fetching songs:', error);
     } finally {
