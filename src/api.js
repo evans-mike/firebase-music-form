@@ -1,5 +1,5 @@
 import { db } from './firebase';
-import { collection, addDoc, getDocs, query, where, doc, WriteBatch } from 'firebase/firestore';
+import { collection, addDoc, getDocs, doc, setDoc, writeBatch } from 'firebase/firestore';
 
 // Create a new song
 export const createSong = async (songData) => {
@@ -18,14 +18,14 @@ export const getSongs = async () => {
 
 // Create song occurrences for a specific song
 export const createSongOccurrences = async (songId, occurrences) => {
-  const batch = WriteBatch(db);
-  const occurrencesCollection = collection(db, 'songs', songId, 'occurrences');
+  const batch = writeBatch(db);
   occurrences.forEach(occurrence => {
-    const occurrenceRef = doc(occurrencesCollection);
+    const occurrenceRef = doc(collection(db, 'songs', songId, 'occurrences'));
     batch.set(occurrenceRef, occurrence);
   });
   await batch.commit();
 };
+
 // Helper function to format date to YYYY-MM-DD
 export const formatDate = (date) => {
   return date.toISOString().split('T')[0];
