@@ -11,6 +11,13 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID
 };
 
-export const app = initializeApp(firebaseConfig);
-export const auth = getAuth(app);
-export const db = getFirestore(app);
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+
+// Initialize Firebase Authentication and get a reference to the service
+const auth = getAuth(app);
+
+// Initialize Firestore and get a reference to the service
+const db = getFirestore(app);
+
+export { auth, db };

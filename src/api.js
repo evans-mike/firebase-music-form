@@ -1,17 +1,16 @@
 import { db } from './firebase';
+import { collection, addDoc, getDocs, query, where } from 'firebase/firestore';
 
 // Create a new song
 export const createSong = async (songData) => {
-  const songRef = await db.collection('songs').add(songData);
+  const songRef = await addDoc(collection(db, 'songs'), songData);
   return songRef.id;
 };
 
 // Get all songs
 export const getSongs = async () => {
-  console.log('Fetching songs from the database');
-  const snapshot = await db.collection('songs').get();
-  console.log('Songs fetched:', snapshot.docs.length);
-  return snapshot.docs.map(doc => ({
+  const songsSnapshot = await getDocs(collection(db, 'songs'));
+  return songsSnapshot.docs.map(doc => ({
     id: doc.id,
     ...doc.data()
   }));
@@ -20,13 +19,13 @@ export const getSongs = async () => {
 // Create song occurrences for a specific song
 export const createSongOccurrences = async (songId, occurrences) => {
   const batch = db.batch();
+  const occurrencesCollection = collection(db, 'songs', songId, 'occurrences');
   occurrences.forEach(occurrence => {
-    const occurrenceRef = db.collection('songs').doc(songId).collection('occurrences').doc();
+    const occurrenceRef = doc(occurrencesCollection);
     batch.set(occurrenceRef, occurrence);
   });
   await batch.commit();
 };
-
 // Helper function to format date to YYYY-MM-DD
 export const formatDate = (date) => {
   return date.toISOString().split('T')[0];
