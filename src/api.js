@@ -1,5 +1,5 @@
 import { db } from './firebase';
-import { collection, addDoc, getDocs, query, where } from 'firebase/firestore';
+import { collection, addDoc, getDocs, query, where, doc, WriteBatch } from 'firebase/firestore';
 
 // Create a new song
 export const createSong = async (songData) => {
@@ -18,7 +18,7 @@ export const getSongs = async () => {
 
 // Create song occurrences for a specific song
 export const createSongOccurrences = async (songId, occurrences) => {
-  const batch = db.batch();
+  const batch = WriteBatch(db);
   const occurrencesCollection = collection(db, 'songs', songId, 'occurrences');
   occurrences.forEach(occurrence => {
     const occurrenceRef = doc(occurrencesCollection);
