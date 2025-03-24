@@ -1,9 +1,8 @@
 import { db } from './firebase';
-import { collection, query, where, getDocs, addDoc, writeBatch, doc } from 'firebase/firestore';
+import { collection, query, where, getDocs, addDoc, doc, deleteDoc, writeBatch } from 'firebase/firestore';
 
 // Create a new song with uniqueness check
 export const createSong = async (songData) => {
-  // Check for duplicate song title
   const q = query(collection(db, 'songs'), where('title', '==', songData.title));
   const querySnapshot = await getDocs(q);
 
@@ -29,7 +28,6 @@ export const createSongOccurrences = async (songId, occurrences) => {
   const batch = writeBatch(db);
 
   for (const occurrence of occurrences) {
-    // Check for duplicate occurrence
     const q = query(
       collection(db, 'songs', songId, 'occurrences'),
       where('date', '==', occurrence.date),
@@ -46,6 +44,34 @@ export const createSongOccurrences = async (songId, occurrences) => {
   }
 
   await batch.commit();
+};
+
+// Get all occurrences
+export const getOccurrences = async () => {
+  const occurrences = [];
+  const songsSnapshot = await getDocs(collection(db, 'songs'));
+
+  for (const songDoc of songsSnapshot.docs) {
+    const songId = songDoc.id;
+    const songTitle = songDoc.data().title;
+
+    const occurrencesSnapshot = await getDocs(collection(db, 'songs', songId, 'occurrences'));
+    occurrencesSnapshot.docs.forEach(occurrenceDoc => {
+      occurrences.push({
+        id: occurrenceDoc.id,
+        songId,
+        title: songTitle,
+        ...occurrenceDoc.data()
+      });
+    });
+  }
+
+  return occurrences;
+};
+
+// Delete a song occurrence
+export const deleteOccurrence = async (songId, occurrenceId) => {
+  await deleteDoc(doc(db, 'songs', songId, 'occurrences', occurrenceId));
 };
 
 // Helper function to format date to YYYY-MM-DD

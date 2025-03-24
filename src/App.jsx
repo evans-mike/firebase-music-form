@@ -5,6 +5,7 @@ import { auth } from './firebase';
 import { LoginForm } from './components/LoginForm';
 import { SongForm } from './components/SongForm';
 import { OccurrenceForm } from './components/OccurrenceForm';
+import { GetOccurrences } from './components/GetOccurrences';
 import { getSongs } from './api';
 
 export function App() {
@@ -13,6 +14,7 @@ export function App() {
   const [songs, setSongs] = useState([]); 
   const [songsLoading, setSongsLoading] = useState(false); 
   const [isSongFormCollapsed, setIsSongFormCollapsed] = useState(true); 
+  const [isOccurrencesCollapsed, setIsOccurrencesCollapsed] = useState(true); 
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -24,10 +26,13 @@ export function App() {
       
       setUser(user);
       setLoading(false);
-      handleGetSongs();
     });
 
     return () => unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    handleGetSongs();
   }, []);
 
   const handleLoginSuccess = () => {
@@ -79,22 +84,15 @@ export function App() {
           </section>
 
           <section className="form-section">
-            <h2>Song Occurrences</h2>
-            <OccurrenceForm user={user} songs={songs} />
+            <h2 onClick={() => setIsOccurrencesCollapsed(!isOccurrencesCollapsed)}>
+              View Song Occurrences {isOccurrencesCollapsed ? '▼' : '▲'}
+            </h2>
+            {!isOccurrencesCollapsed && <GetOccurrences />}
           </section>
 
           <section className="form-section">
-            <h2>Get Songs</h2>
-            <button onClick={handleGetSongs} disabled={songsLoading}>
-              {songsLoading ? 'Loading Songs...' : 'Get Songs'}
-            </button>
-            {songs.length > 0 && (
-              <ul>
-                {songs.map((song) => (
-                  <li key={song.id}>{song.title}</li>
-                ))}
-              </ul>
-            )}
+            <h2>Song Occurrences</h2>
+            <OccurrenceForm user={user} songs={songs} />
           </section>
         </div>
       )}

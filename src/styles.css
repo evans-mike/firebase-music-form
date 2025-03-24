@@ -199,3 +199,43 @@
       font-size: 0.875rem;
     }
   }
+
+.occurrences-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.occurrences-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+.occurrences-table th,
+.occurrences-table td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: left;
+}
+
+.occurrences-table th {
+  background-color: #f2f2f2;
+}
+
+.delete-button {
+  background-color: red;
+  color: white;
+  border: none;
+  padding: 5px;
+  cursor: pointer;
+}
+
+.delete-button:hover {
+  background-color: darkred;
+}
+
+.error-message {
+  color: red;
+  margin-top: 20px;
+}
