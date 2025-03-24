@@ -1,18 +1,13 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Allow read and write access to authenticated users for the 'songs' collection
-    match /songs/{songId} {
+    // Allow read access to all documents in the 'occurrences' collection group
+    match /{document=**}/occurrences/{occurrence} {
       allow read, write: if request.auth != null;
-      
-      // Allow read and write access to authenticated users for the 'occurrences' subcollection
-      match /occurrences/{occurrenceId} {
-        allow read, write: if request.auth != null;
-      }
     }
 
-    // Allow read access to authenticated users in the 'occurrences' collection group
-    match /{document=**}/occurrences/{occurrenceId} {
+    // Additional rules for other collections
+    match /songs/{songId} {
       allow read, write: if request.auth != null;
     }
   }

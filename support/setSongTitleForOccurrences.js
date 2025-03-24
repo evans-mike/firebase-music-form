@@ -3,12 +3,7 @@ import { getFirestore, collectionGroup, getDocs, doc, updateDoc, getDoc }  from 
 
 // Initialize Firebase app
 const firebaseConfig = {
-  apiKey: "AIzaSyAI3ubU7Cy0kZdqpTHlD7OM6dLdDJGjymk",
-  authDomain: "music-form-4cfd6.firebaseapp.com",
-  projectId: "music-form-4cfd6",
-  storageBucket: "music-form-4cfd6.firebasestorage.app",
-  messagingSenderId: "331873655169",
-  appId: "1:331873655169:web:d3e4c7ebb042daa1573080"
+  ...
 };
 
 const app = initializeApp(firebaseConfig);
