@@ -64,10 +64,34 @@ export const getOccurrences = async (lastVisible = null) => {
   }
 
   const occurrencesSnapshot = await getDocs(q);
+
+  // Collect all songIds from occurrences
+  const songIds = new Set();
   occurrencesSnapshot.docs.forEach(occurrenceDoc => {
+    songIds.add(occurrenceDoc.ref.parent.parent.id);
+  });
+
+  // Fetch all song documents in a single batch
+  const songDocs = await Promise.all(Array.from(songIds).map(async songId => {
+    const songDocRef = doc(db, 'songs', songId);
+    const songDoc = await getDoc(songDocRef);
+    return { songId, songTitle: songDoc.exists() ? songDoc.data().title : 'Unknown Title' };
+  }));
+
+  // Create a map of songId to songTitle
+  const songMap = new Map(songDocs.map(song => [song.songId, song.songTitle]));
+
+  // Populate occurrences with song titles
+  occurrencesSnapshot.docs.forEach(occurrenceDoc => {
+    const occurrenceData = occurrenceDoc.data();
+    const songId = occurrenceDoc.ref.parent.parent.id;
+    const songTitle = songMap.get(songId);
+
     occurrences.push({
       id: occurrenceDoc.id,
-      ...occurrenceDoc.data()
+      songId,
+      songTitle, // Include the song title in the occurrence document
+      ...occurrenceData
     });
   });
 
