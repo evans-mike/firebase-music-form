@@ -1,5 +1,5 @@
 import { db } from './firebase';
-import { collectionGroup, query, orderBy, limit, startAfter, getDocs, addDoc, doc, deleteDoc, writeBatch } from 'firebase/firestore';
+import { collectionGroup, query, orderBy, limit, startAfter, getDocs, getDoc, doc, addDoc, deleteDoc, writeBatch, Timestamp } from 'firebase/firestore';
 
 // Create a new song with uniqueness check
 export const createSong = async (songData) => {
@@ -69,15 +69,22 @@ export const getOccurrences = async (lastVisible = null) => {
   }
 
   const occurrencesSnapshot = await getDocs(q);
-  occurrencesSnapshot.docs.forEach(occurrenceDoc => {
+  for (const occurrenceDoc of occurrencesSnapshot.docs) {
     const occurrenceData = occurrenceDoc.data();
     const songId = occurrenceDoc.ref.parent.parent.id;
+
+    // Fetch the song document to get the title
+    const songDocRef = doc(db, 'songs', songId);
+    const songDoc = await getDoc(songDocRef);
+    const songTitle = songDoc.exists() ? songDoc.data().title : 'Unknown Title';
+
     occurrences.push({
       id: occurrenceDoc.id,
       songId,
+      title: songTitle,
       ...occurrenceData
     });
-  });
+  }
 
   // Update lastVisible for pagination
   const newLastVisible = occurrencesSnapshot.docs.length > 0 ? occurrencesSnapshot.docs[occurrencesSnapshot.docs.length - 1] : null;
