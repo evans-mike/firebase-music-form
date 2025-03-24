@@ -5,22 +5,32 @@ export function LoadOccurrences() {
   const [occurrences, setOccurrences] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [lastVisible, setLastVisible] = useState(null);
+  const [loadingMore, setLoadingMore] = useState(false);
 
   useEffect(() => {
-    const fetchOccurrences = async () => {
-      try {
-        const occurrencesList = await getOccurrences();
-        setOccurrences(occurrencesList);
-      } catch (err) {
-        console.error('Error fetching occurrences:', err);
-        setError('Failed to load occurrences.');
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchOccurrences();
   }, []);
+
+  const fetchOccurrences = async (loadMore = false) => {
+    try {
+      if (loadMore) {
+        setLoadingMore(true);
+      } else {
+        setLoading(true);
+      }
+
+      const { occurrences: newOccurrences, lastVisible: newLastVisible } = await getOccurrences(lastVisible);
+      setOccurrences(loadMore ? [...occurrences, ...newOccurrences] : newOccurrences);
+      setLastVisible(newLastVisible);
+    } catch (err) {
+      console.error('Error fetching occurrences:', err);
+      setError('Failed to load occurrences.');
+    } finally {
+      setLoading(false);
+      setLoadingMore(false);
+    }
+  };
 
   const handleDelete = async (songId, occurrenceId) => {
     const confirmed = window.confirm('Are you sure you want to delete this occurrence?');
@@ -28,14 +38,15 @@ export function LoadOccurrences() {
 
     try {
       await deleteOccurrence(songId, occurrenceId);
-      setOccurrences(occurrences.filter(occurrence => occurrence.id !== occurrenceId));
+      const updatedOccurrences = occurrences.filter(occurrence => occurrence.id !== occurrenceId);
+      setOccurrences(updatedOccurrences);
     } catch (err) {
       console.error('Error deleting occurrence:', err);
       setError('Failed to delete occurrence.');
     }
   };
 
-  if (loading) {
+  if (loading && !loadingMore) {
     return <div className="loading">Loading...</div>;
   }
 
@@ -72,6 +83,11 @@ export function LoadOccurrences() {
           ))}
         </tbody>
       </table>
+      {lastVisible && (
+        <button onClick={() => fetchOccurrences(true)} className="load-more-button" disabled={loadingMore}>
+          {loadingMore ? 'Loading...' : 'Load More'}
+        </button>
+      )}
     </div>
   );
 }
