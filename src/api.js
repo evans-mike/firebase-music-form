@@ -1,5 +1,5 @@
 import { db } from './firebase';
-import { collectionGroup, query, orderBy, limit, startAfter, getDocs, getDoc, doc, addDoc, deleteDoc, writeBatch, Timestamp } from 'firebase/firestore';
+import { collectionGroup, collection, query, orderBy, limit, startAfter, getDocs, getDoc, doc, addDoc, deleteDoc, writeBatch, Timestamp } from 'firebase/firestore';
 
 // Create a new song with uniqueness check
 export const createSong = async (songData) => {
