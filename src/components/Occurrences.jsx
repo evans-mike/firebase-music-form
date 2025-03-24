@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { getOccurrences, deleteOccurrence } from '../api';
 
-export function GetOccurrences() {
+export function LoadOccurrences() {
   const [occurrences, setOccurrences] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');

@@ -5,7 +5,7 @@ import { auth } from './firebase';
 import { LoginForm } from './components/LoginForm';
 import { SongForm } from './components/SongForm';
 import { OccurrenceForm } from './components/OccurrenceForm';
-import { GetOccurrences } from './components/Occurrences';
+import { LoadOccurrences } from './components/Occurrences';
 import { getSongs } from './api';
 
 export function App() {
@@ -87,7 +87,7 @@ export function App() {
             <h2 onClick={() => setIsOccurrencesCollapsed(!isOccurrencesCollapsed)}>
               View Song Occurrences {isOccurrencesCollapsed ? '▼' : '▲'}
             </h2>
-            {!isOccurrencesCollapsed && <GetOccurrences />}
+            {!isOccurrencesCollapsed && <LoadOccurrences />}
           </section>
 
           <section className="form-section">
