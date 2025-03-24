@@ -38,11 +38,12 @@ export function App() {
   const handleGetSongs = async () => {
     setSongsLoading(true);
     try {
+      console.log('Fetching songs...');
       const songsList = await getSongs();
+      console.log('Fetched songs:', songsList);
       // Sort songs alphabetically by title
-      // const sortedSongs = songsList.sort((a, b) => a.title.localeCompare(b.title));
-      // setSongs(sortedSongs);
-      setSongs(songsList);
+      const sortedSongs = songsList.sort((a, b) => a.title.localeCompare(b.title));
+      setSongs(sortedSongs);
     } catch (error) {
       console.error('Error fetching songs:', error);
     } finally {
