@@ -23,9 +23,6 @@ export const getSongs = async () => {
   }));
 };
 
-import { db, Timestamp } from './firebase';
-import { collection, doc, writeBatch } from 'firebase/firestore';
-
 // Create song occurrences for a specific song with song title included
 export const createSongOccurrences = async (songId, songTitle, occurrences) => {
   const batch = writeBatch(db);
