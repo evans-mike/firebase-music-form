@@ -1,0 +1,12 @@
+songs (collection)
+  └─ songId (document)
+       ├─ title: "Song A"
+       ├─ attributes: ["refrain", "hymn"]
+       ├─ author_group: "Group 1"
+       ├─ authors: ["Author 1", "Author 2"]
+       ├─ year: 2020
+       └─ occurrences (subcollection)
+            ├─ occurrenceId (document)
+            │    ├─ date: "2025-03-01"
+            │    ├─ service: "AM"
+            │    └─ closer_flag: true

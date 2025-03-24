@@ -42,7 +42,8 @@ export function OccurrenceForm({ songs }) {
         date: formatDate(new Date(occurrence.date)),
         closer_flag: occurrence.closerFlag
       }));
-      await createSongOccurrences(formattedOccurrences);
+      const songId = occurrences[0].songId;
+      await createSongOccurrences(songId, formattedOccurrences);
       setSuccess('Song occurrences created successfully!');
       setOccurrences([{ id: Date.now(), songId: '', date: '', service: 'AM', closerFlag: false }]);
     } catch (err) {
