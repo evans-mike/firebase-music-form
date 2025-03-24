@@ -2,45 +2,58 @@ import { useState } from 'react';
 import { createSong } from '../api';
 
 export function SongForm({ user, onSongCreated }) {
-  const [title, setTitle] = useState('');
-  const [attributes, setAttributes] = useState('');
-  const [authorGroup, setAuthorGroup] = useState('');
-  const [authors, setAuthors] = useState('');
-  const [year, setYear] = useState('');
+  const initialFormState = {
+    title: '',
+    attributes: '',
+    authorGroup: '',
+    authors: '',
+    year: ''
+  };
+
+  const [formState, setFormState] = useState(initialFormState);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [loading, setLoading] = useState(false);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormState({
+      ...formState,
+      [name]: value
+    });
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setSuccess('');
-    setLoading(true);
+    
+    const { title, attributes, authorGroup, authors, year } = formState;
+
+    if (!title) {
+      setError('Title is required');
+      return;
+    }
+
+    const songData = {
+      title,
+      attributes: attributes.split(',').map(attr => attr.trim()),
+      author_group: authorGroup,
+      authors: authors.split(',').map(author => author.trim()),
+      year: parseInt(year, 10),
+      createdAt: new Date(),
+      createdBy: user.uid,
+      updatedAt: new Date(),
+      updatedBy: user.uid
+    };
 
     try {
-      await createSong({
-        title,
-        attributes: attributes.split(',').map(attr => attr.trim()),
-        author_group: authorGroup,
-        authors: authors.split(',').map(author => author.trim()),
-        year: parseInt(year, 10),
-        createdAt: new Date(),
-        createdBy: user.email,
-        updatedAt: new Date(),
-        updatedBy: user.email
-      });
+      await createSong(songData);
       setSuccess('Song created successfully!');
-      setTitle('');
-      setAttributes('');
-      setAuthorGroup('');
-      setAuthors('');
-      setYear('');
-      onSongCreated?.(); // Call onSongCreated after a new song is created
+      setFormState(initialFormState);
+      onSongCreated();
     } catch (err) {
       console.error('Error creating song:', err);
-      setError('Failed to create song');
-    } finally {
-      setLoading(false);
+      setError(err.message);
     }
   };
 
@@ -53,58 +66,57 @@ export function SongForm({ user, onSongCreated }) {
           <input
             type="text"
             id="title"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
+            name="title"
+            value={formState.title}
+            onChange={handleChange}
             required
           />
         </div>
-
         <div className="form-group">
-          <label htmlFor="attributes">Attributes (comma-separated)</label>
+          <label htmlFor="attributes">Attributes (comma separated)</label>
           <input
             type="text"
             id="attributes"
-            value={attributes}
-            onChange={(e) => setAttributes(e.target.value)}
+            name="attributes"
+            value={formState.attributes}
+            onChange={handleChange}
           />
         </div>
-
         <div className="form-group">
           <label htmlFor="authorGroup">Author Group</label>
           <input
             type="text"
             id="authorGroup"
-            value={authorGroup}
-            onChange={(e) => setAuthorGroup(e.target.value)}
+            name="authorGroup"
+            value={formState.authorGroup}
+            onChange={handleChange}
           />
         </div>
-
         <div className="form-group">
-          <label htmlFor="authors">Authors (comma-separated)</label>
+          <label htmlFor="authors">Authors (comma separated)</label>
           <input
             type="text"
             id="authors"
-            value={authors}
-            onChange={(e) => setAuthors(e.target.value)}
+            name="authors"
+            value={formState.authors}
+            onChange={handleChange}
           />
         </div>
-
         <div className="form-group">
           <label htmlFor="year">Year</label>
           <input
             type="number"
             id="year"
-            value={year}
-            onChange={(e) => setYear(e.target.value)}
+            name="year"
+            value={formState.year}
+            onChange={handleChange}
           />
         </div>
 
         {error && <div className="error-message">{error}</div>}
         {success && <div className="success-message">{success}</div>}
 
-        <button type="submit" disabled={loading}>
-          {loading ? 'Creating...' : 'Create Song'}
-        </button>
+        <button type="submit">Create Song</button>
       </form>
     </div>
   );

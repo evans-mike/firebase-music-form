@@ -1,8 +1,16 @@
 import { db } from './firebase';
-import { collection, addDoc, getDocs, doc, setDoc, writeBatch } from 'firebase/firestore';
+import { collection, query, where, getDocs, addDoc, writeBatch, doc } from 'firebase/firestore';
 
-// Create a new song
+// Create a new song with uniqueness check
 export const createSong = async (songData) => {
+  // Check for duplicate song title
+  const q = query(collection(db, 'songs'), where('title', '==', songData.title));
+  const querySnapshot = await getDocs(q);
+
+  if (!querySnapshot.empty) {
+    throw new Error('A song with this title already exists.');
+  }
+
   const songRef = await addDoc(collection(db, 'songs'), songData);
   return songRef.id;
 };
@@ -16,13 +24,27 @@ export const getSongs = async () => {
   }));
 };
 
-// Create song occurrences for a specific song
+// Create song occurrences for a specific song with uniqueness check
 export const createSongOccurrences = async (songId, occurrences) => {
   const batch = writeBatch(db);
-  occurrences.forEach(occurrence => {
+
+  for (const occurrence of occurrences) {
+    // Check for duplicate occurrence
+    const q = query(
+      collection(db, 'songs', songId, 'occurrences'),
+      where('date', '==', occurrence.date),
+      where('service', '==', occurrence.service)
+    );
+    const querySnapshot = await getDocs(q);
+
+    if (!querySnapshot.empty) {
+      throw new Error(`An occurrence for the date ${occurrence.date} and service ${occurrence.service} already exists.`);
+    }
+
     const occurrenceRef = doc(collection(db, 'songs', songId, 'occurrences'));
     batch.set(occurrenceRef, occurrence);
-  });
+  }
+
   await batch.commit();
 };
 
