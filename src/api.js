@@ -23,24 +23,22 @@ export const getSongs = async () => {
   }));
 };
 
-// Create song occurrences for a specific song with uniqueness check
-export const createSongOccurrences = async (songId, occurrences) => {
+import { db, Timestamp } from './firebase';
+import { collection, doc, writeBatch } from 'firebase/firestore';
+
+// Create song occurrences for a specific song with song title included
+export const createSongOccurrences = async (songId, songTitle, occurrences) => {
   const batch = writeBatch(db);
 
   for (const occurrence of occurrences) {
-    const q = query(
-      collection(db, 'songs', songId, 'occurrences'),
-      where('date', '==', occurrence.date),
-      where('service', '==', occurrence.service)
-    );
-    const querySnapshot = await getDocs(q);
-
-    if (!querySnapshot.empty) {
-      throw new Error(`An occurrence for the date ${occurrence.date} and service ${occurrence.service} already exists.`);
-    }
+    const occurrenceData = {
+      ...occurrence,
+      songTitle, // Include the song title in the occurrence document
+      date: Timestamp.fromDate(new Date(occurrence.date)) // Ensure date is stored as Timestamp
+    };
 
     const occurrenceRef = doc(collection(db, 'songs', songId, 'occurrences'));
-    batch.set(occurrenceRef, occurrence);
+    batch.set(occurrenceRef, occurrenceData);
   }
 
   await batch.commit();
@@ -69,22 +67,12 @@ export const getOccurrences = async (lastVisible = null) => {
   }
 
   const occurrencesSnapshot = await getDocs(q);
-  for (const occurrenceDoc of occurrencesSnapshot.docs) {
-    const occurrenceData = occurrenceDoc.data();
-    const songId = occurrenceDoc.ref.parent.parent.id;
-
-    // Fetch the song document to get the title
-    const songDocRef = doc(db, 'songs', songId);
-    const songDoc = await getDoc(songDocRef);
-    const songTitle = songDoc.exists() ? songDoc.data().title : 'Unknown Title';
-
+  occurrencesSnapshot.docs.forEach(occurrenceDoc => {
     occurrences.push({
       id: occurrenceDoc.id,
-      songId,
-      title: songTitle,
-      ...occurrenceData
+      ...occurrenceDoc.data()
     });
-  }
+  });
 
   // Update lastVisible for pagination
   const newLastVisible = occurrencesSnapshot.docs.length > 0 ? occurrencesSnapshot.docs[occurrencesSnapshot.docs.length - 1] : null;
