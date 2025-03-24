@@ -1,5 +1,5 @@
 import { db } from './firebase';
-import { collection, query, orderBy, limit, startAfter, getDocs, addDoc, doc, deleteDoc, writeBatch } from 'firebase/firestore';
+import { collectionGroup, query, orderBy, limit, startAfter, getDocs, addDoc, doc, deleteDoc, writeBatch } from 'firebase/firestore';
 
 // Create a new song with uniqueness check
 export const createSong = async (songData) => {
@@ -49,47 +49,40 @@ export const createSongOccurrences = async (songId, occurrences) => {
 // Get paginated occurrences with sorting
 export const getOccurrences = async (lastVisible = null) => {
   const occurrences = [];
-  const songsSnapshot = await getDocs(collection(db, 'songs'));
+  let q = query(
+    collectionGroup(db, 'occurrences'),
+    orderBy('date', 'desc'),
+    orderBy('service', 'desc'),
+    orderBy('closer_flag', 'desc'),
+    limit(25)
+  );
 
-  for (const songDoc of songsSnapshot.docs) {
-    const songId = songDoc.id;
-    const songTitle = songDoc.data().title;
-    let q = query(
-      collection(db, 'songs', songId, 'occurrences'),
+  if (lastVisible) {
+    q = query(
+      collectionGroup(db, 'occurrences'),
       orderBy('date', 'desc'),
       orderBy('service', 'desc'),
       orderBy('closer_flag', 'desc'),
+      startAfter(lastVisible),
       limit(25)
     );
-
-    if (lastVisible) {
-      q = query(
-        collection(db, 'songs', songId, 'occurrences'),
-        orderBy('date', 'desc'),
-        orderBy('service', 'desc'),
-        orderBy('closer_flag', 'desc'),
-        startAfter(lastVisible),
-        limit(25)
-      );
-    }
-
-    const occurrencesSnapshot = await getDocs(q);
-    occurrencesSnapshot.docs.forEach(occurrenceDoc => {
-      occurrences.push({
-        id: occurrenceDoc.id,
-        songId,
-        title: songTitle,
-        ...occurrenceDoc.data()
-      });
-    });
-
-    // Update lastVisible for pagination
-    if (!lastVisible) {
-      lastVisible = occurrencesSnapshot.docs[occurrencesSnapshot.docs.length - 1];
-    }
   }
 
-  return { occurrences, lastVisible };
+  const occurrencesSnapshot = await getDocs(q);
+  occurrencesSnapshot.docs.forEach(occurrenceDoc => {
+    const occurrenceData = occurrenceDoc.data();
+    const songId = occurrenceDoc.ref.parent.parent.id;
+    occurrences.push({
+      id: occurrenceDoc.id,
+      songId,
+      ...occurrenceData
+    });
+  });
+
+  // Update lastVisible for pagination
+  const newLastVisible = occurrencesSnapshot.docs.length > 0 ? occurrencesSnapshot.docs[occurrencesSnapshot.docs.length - 1] : null;
+
+  return { occurrences, lastVisible: newLastVisible };
 };
 
 // Delete a song occurrence
