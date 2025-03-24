@@ -46,6 +46,13 @@ export function LoadOccurrences() {
     }
   };
 
+  const formatDate = (timestamp) => {
+    if (!timestamp) return '';
+    // Handle Firestore Timestamp objects
+    const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+    return date.toISOString().split('T')[0];
+  };
+
   if (loading && !loadingMore) {
     return <div className="loading">Loading...</div>;
   }
@@ -70,8 +77,8 @@ export function LoadOccurrences() {
         <tbody>
           {occurrences.map(occurrence => (
             <tr key={occurrence.id}>
-              <td>{occurrence.date}</td>
-              <td>{occurrence.title}</td>
+              <td>{formatDate(occurrence.date)}</td>
+              <td>{occurrence.songTitle}</td>
               <td>{occurrence.service}</td>
               <td>{occurrence.closer_flag ? 'Yes' : 'No'}</td>
               <td>
