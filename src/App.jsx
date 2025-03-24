@@ -5,7 +5,7 @@ import { auth } from './firebase';
 import { LoginForm } from './components/LoginForm';
 import { SongForm } from './components/SongForm';
 import { OccurrenceForm } from './components/OccurrenceForm';
-import { GetOccurrences } from './components/GetOccurrences';
+import { GetOccurrences } from './components/Occurrences';
 import { getSongs } from './api';
 
 export function App() {
