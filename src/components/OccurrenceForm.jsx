@@ -34,7 +34,7 @@ export function OccurrenceForm({ songs }) {
     e.preventDefault();
     setError('');
     setSuccess('');
-
+  
     try {
       occurrences.forEach(validateOccurrence);
       const formattedOccurrences = occurrences.map(occurrence => ({
@@ -42,8 +42,17 @@ export function OccurrenceForm({ songs }) {
         date: formatDate(new Date(occurrence.date)),
         closer_flag: occurrence.closerFlag
       }));
+      
       const songId = occurrences[0].songId;
-      await createSongOccurrences(songId, formattedOccurrences);
+      
+      // Find the song title from the songs array using the songId
+      const selectedSong = songs.find(song => song.id === songId);
+      if (!selectedSong) throw new Error('Selected song not found');
+      const songTitle = selectedSong.title;
+      
+      // Pass all three required parameters
+      await createSongOccurrences(songId, songTitle, formattedOccurrences);
+      
       setSuccess('Song occurrences created successfully!');
       setOccurrences([{ id: Date.now(), songId: '', date: '', service: 'AM', closerFlag: false }]);
     } catch (err) {
